@@ -3,6 +3,7 @@ A pipeline to segment tissue cuts from the background in histopathological image
 
 ##### Dependencies
 Bash
+
 Python 3
 
 | Required python Libraries |

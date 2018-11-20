@@ -18,13 +18,14 @@ svs_file=$1
 sigma=${2:-0.5}
 min=${3:-100000}
 k=${4:-20000}
+level=${5:-1}
 
 image=$(basename $svs_file .svs)
 echo $image
 
 #produce edge image
 #echo "producing edge file..."
-produce_edges.py $svs_file "edges_$image.jpg"
+produce_edges.py $svs_file "edges_$image.jpg" $level
 convert "edges_$image.jpg" "$image.ppm"
 
         
