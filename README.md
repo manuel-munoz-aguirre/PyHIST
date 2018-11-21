@@ -13,4 +13,4 @@ Python 3
 | OpenCV                    |
 | OpenSlide                 |
 | Pillow                    |
- 
+| Matplotlib                | 
