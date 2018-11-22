@@ -3,15 +3,17 @@
 #This will be the final script. It will work as wrapper and will connect the rest of the scripts in a single pipeline.
 
 
-PROGNAME=$(basename $0)
+PROGNAME=$( basename $0 )
 src_dir=${0%/*}
+cwd=$( pwd )
 
 #function printing an error message
 usage () {
-    cat <<- _EOF_
-    $PROGNAME: usage: $PROGNAME [test] [ARGS]
-    For more information check the help page: $PROGNAME [-h | --help]
-    _EOF_
+    cat <<-_EOF_
+        $PROGNAME: usage: $PROGNAME [test] [ARGS]
+        $1
+        For more information check the help page: $PROGNAME [-h | --help]
+_EOF_
     return
 }
 
@@ -80,17 +82,31 @@ pleh () {
     -e
     --save_edges
 
+    -i
+    --image_file
+
     -h
     --help
-    _EOF_
+_EOF_
     return
 }
 
 
+#check if the required files for the Felzenszwalb algorithm are already set up
+if [[ ! (-d "$src_dir/Felzenszwalb_algorithm")  ]]; then
+    echo Initial set up...
+    cd $src_dir/
+    unzip ../Felzenszwalb_algorithm.zip 
+    mv segment Felzenszwalb_algorithm
+    cd Felzenszwalb_algorithm
+    make
+    cd $cwd
+    echo ...OK
+fi
 
 #read command line arguments
 if [[ $1 == 'test' ]]; then
-    test_image=1
+    test_image='True'
     shift
     while [[ -n $1 ]]; do
         case $1 in
@@ -106,10 +122,13 @@ if [[ $1 == 'test' ]]; then
             -l | --level)                     shift
                                               level=$1
                                               ;;
+            -i | --image_file)                shift
+                                              svs=$1
+                                              ;;
             -h | --help)                      pleh
                                               exit
                                               ;;
-            *)                                usage >&2
+            *)                                usage 'Invalid argument!' >&2
                                               exit 1
                                               ;;
         esac
@@ -152,6 +171,9 @@ else
                        ;;
                     x) save_tilecrossed='True'
                        ;;
+                    i) shift
+                       svs=$1
+                       ;;
                     h) pleh
                        exit
                        ;;
@@ -159,7 +181,7 @@ else
                        ;;
                     e) save_edges='True'
                        ;;
-                    *) usage >&2
+                    *) usage 'Invalid argument!' >&2
                        exit 1
                        ;;
                 esac
@@ -206,7 +228,10 @@ else
                                                   ;;
                 -e | --save_edges)                save_edges='True'
                                                   ;;
-                *)                                usage >&2
+                -i | --image_file)                shift
+                                                  svs=$1
+                                                  ;;
+                *)                                usage 'Invalid argument!' >&2
                                                   exit 1
                                                   ;;
             esac
@@ -214,6 +239,9 @@ else
         shift
     done
 fi
+
+#check for the image input
+[[ -n $svs ]] || { usage 'Invalid or absent input!' >&2; exit 1; }
 
 
 #set default values for parameters
@@ -231,10 +259,29 @@ save_tilecrossed=${save_tilecrossed:-'False'}
 save_mask=${save_mask:-'False'}
 save_edges=${save_edges:-'False'}
 
+image=$( basename $svs .*)
+echo $image
 
+#create a temporary folder
+temp=".$PROGNAME-$image.$$_$RANDOM"
+mkdir $temp
 
+#produce edge image
+echo 'Producing edge image...'
+python "$src_dir/produce_edges.py" $svs "$temp/edges_$image.jpg" $level
+convert "$temp/edges_$image.jpg" "$temp/$image.ppm"
+echo OK
 
+#run Felzenszwalb algorithm
+echo 'Segmenting image...'
+$src_dir/Felzenszwalb_algorithm/segment $sigma $k $min "$temp/$image.ppm" "$temp/segmented_$image.ppm"
+echo OK
 
+#delete image.ppm
+rm $temp/$image.ppm
+
+#test mode
+[[ $test_image == 'True' ]] && { python $src_dir/test_image.py $temp $image; mv "$temp/test_$image.png" $cwd; rm -r $temp; exit; }
 
 
 
