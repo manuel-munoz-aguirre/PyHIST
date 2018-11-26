@@ -35,7 +35,7 @@ level = int(sys.argv[3])
 
 #read the image and apply Canny edge detector
 svs = openslide.OpenSlide(in_img)
-img = np.array(alpha_to_color(svs.read_region((0,0), level, svs.dimensions[level])))
+img = np.array(alpha_to_color(svs.read_region((0,0), level, svs.level_dimensions[level])))
 edges = cv2.Canny(img, 100, 200)
 
 #save the produced image

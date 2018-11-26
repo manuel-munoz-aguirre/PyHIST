@@ -3,7 +3,7 @@
 #This will be the final script. It will work as wrapper and will connect the rest of the scripts in a single pipeline.
 
 
-PROGNAME=$( basename $0 )
+PROGNAME=$( basename $0 | cut -d'.' -f1 )
 src_dir=${0%/*}
 cwd=$( pwd )
 
@@ -104,6 +104,8 @@ if [[ ! (-d "$src_dir/Felzenszwalb_algorithm")  ]]; then
     echo ...OK
 fi
 
+#echo "$@"
+
 #read command line arguments
 if [[ $1 == 'test' ]]; then
     test_image='True'
@@ -136,7 +138,8 @@ if [[ $1 == 'test' ]]; then
     done
 else
     while [[ -n $1 ]]; do
-        if [[ ${#1} -gt 2 && ${1:0:2}!='--' ]]; then
+        if [[ ${#1} -gt 2 && ${1:0:2} != '--' ]]; then
+            #echo "in the if: $1"
             for (( i=1; i<${#1}; ++i )); do
                 arg=${1:$i:1}
                 case $arg in
@@ -214,10 +217,10 @@ else
                                                   lines=$1
                                                   ;;
                 -b | --borders)                   shift
-                                                  borders=$1
+                                                  borders="$1"
                                                   ;;
                 -c | --corners)                   shift
-                                                  corners=$1
+                                                  corners="$1"
                                                   ;;
                 -x | --save_tilecrossed_image)    save_tilecrossed='True'
                                                   ;;
@@ -235,8 +238,8 @@ else
                                                   exit 1
                                                   ;;
             esac
+            shift
         fi
-        shift
     done
 fi
 
@@ -253,13 +256,17 @@ save_patches=${save_patches:-'False'}
 thres=${thres:-0.5}
 patch_size=${patch_size:-512}
 lines=${lines:-100}
-borders=${borders:-1234}
-corners=${corners:-0}
+borders=${borders:-'1111'}
+corners=${corners:-'0000'}
 save_tilecrossed=${save_tilecrossed:-'False'}
 save_mask=${save_mask:-'False'}
 save_edges=${save_edges:-'False'}
 
-image=$( basename $svs .*)
+#check errors in borders and corners input
+[[ $borders == '0000' ]] && [[ $corners == '0000' ]] && { usage 'Invalid borders and corners parameters!' >&2; exit 1; }
+[[ $borders != '0000' ]] && [[ $corners != '0000' ]] && { usage 'Invalid borders and corners parameters!' >&2; exit 1; }
+
+image=$( cut -d '.' -f1 <<< $svs )
 echo $image
 
 #create a temporary folder
@@ -281,11 +288,17 @@ echo OK
 rm $temp/$image.ppm
 
 #test mode
-[[ $test_image == 'True' ]] && { python $src_dir/test_image.py $temp $image; mv "$temp/test_$image.png" $cwd; rm -r $temp; exit; }
+[[ $test_image == 'True' ]] && { echo "Producing test image..."; python $src_dir/test_image.py $temp $image; mv "$temp/test_$image.png" $cwd; rm -r $temp; echo "ALL DONE!"; exit; }
 
 
+#produce and select tiles
+echo 'Extracting tiles...'
+python $src_dir/patch_selector.py $temp $image $thres $patch_size $lines $borders $corners $save_tilecrossed $save_patches
 
+#delete mask and edge images
+[[ $save_mask == 'False' ]] && rm "$temp/segmented_$image.ppm"
+[[ $save_edges == 'False' ]] && rm "$temp/edges_$image.jpg"
 
-
-
-
+#turn the results visible
+mv $temp "${image}_${PROGNAME}_output"
+echo 'ALL DONE!'
