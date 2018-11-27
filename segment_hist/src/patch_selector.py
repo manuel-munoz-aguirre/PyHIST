@@ -27,44 +27,53 @@ def selector(mask_patch, thres, bg_color):
 #Function that identifies the background color
 def bg_color_identifier(mask, lines, borders, corners):
     print("Identifing background...")
+    bord = np.empty((1,3))
 
     if borders != '0000':
         if borders[0] == '1':
-            top = mask[[x for x in list(range(lines))], :, :]
+            top = mask[:lines, :, :]
+            a = np.unique(top.reshape(-1, top.shape[2]), axis=0)
+            bord = np.concatenate((bord, a), axis=0)
         if borders[2] == '1':
-            bottom = mask[[x for x in list(range((mask.shape[0] - lines), mask.shape[0]))], :, :]
+            bottom = mask[(mask.shape[0] - lines) : mask.shape[0], :, :]
+            c = np.unique(bottom.reshape(-1, bottom.shape[2]), axis=0)
+            bord = np.concatenate((bord, c), axis=0)
         if borders[1] == '1':
-            left = mask[:, [x for x in list(range(lines))], :]
+            left = mask[:, :lines, :]
+            b = np.unique(left.reshape(-1, left.shape[2]), axis=0)
+            bord = np.concatenate((bord, b), axis=0)
         if borders[3] == '1':
-            right = mask[:, [x for x in list(range((mask.shape[1] - lines), mask.shape[1]))], :]
+            right = mask[:, (mask.shape[1] - lines) : mask.shape[1], :]
+            d = np.unique(right.reshape(-1, right.shape[2]), axis=0)
+            bord = np.concatenate((bord, d), axis=0)
         
-        a = np.unique(top.reshape(-1, top.shape[2]), axis=0)
-        b = np.unique(left.reshape(-1, left.shape[2]), axis=0)
-        c = np.unique(bottom.reshape(-1, bottom.shape[2]), axis=0)
-        d = np.unique(right.reshape(-1, right.shape[2]), axis=0)
-        borders = np.concatenate((a, b, c, d), axis=0)
-        borders_unique = np.unique(borders.reshape(-1, borders.shape[1]), axis=0)
-        bg_color = borders_unique[0]
+        bord = bord[1:, :]
+        bord_unique = np.unique(bord.reshape(-1, bord.shape[1]), axis=0)
+        bg_color = bord_unique[0]
     
     if corners != '0000':
         if corners[0] == '1':
-            top_left = mask[[x for x in list(range(lines))], [x for x in list(range(lines))], :]
+            top_left = mask[:lines, :lines, :]
+            a = np.unique(top_left.reshape(-1, top_left.shape[2]), axis=0)
+            bord = np.concatenate((bord, a), axis=0)
         if corners[1] == '1':
-            bottom_left = mask[[x for x in list(range((mask.shape[0] - lines), mask.shape[0]))], [x for x in list(range(lines))], :]
+            bottom_left = mask[(mask.shape[0] - lines) : mask.shape[0], :lines, :]
+            b = np.unique(bottom_left.reshape(-1, bottom_left.shape[2]), axis=0)
+            bord = np.concatenate((bord, b), axis=0)
         if corners[2] == '1':
-            bottom_right = mask[[x for x in list(range((mask.shape[0] - lines), mask.shape[0]))], [x for x in list(range((mask.shape[1] - lines), mask.shape[1]))], :]
+            bottom_right = mask[(mask.shape[0] - lines) : mask.shape[0], (mask.shape[1] - lines) : mask.shape[1], :]
+            c = np.unique(bottom_right.reshape(-1, bottom_right.shape[2]), axis=0)
+            bord = np.concatenate((bord, c), axis=0)
         if corners[3] == '1':
-            top_right = mask[[x for x in list(range(lines))], [x for x in list(range((mask.shape[1] - lines), mask.shape[1]))], :]
+            top_right = mask[:lines, (mask.shape[1] - lines) : mask.shape[1], :]
+            d = np.unique(top_right.reshape(-1, top_right.shape[2]), axis=0)
+            bord = np.concatenate((bord, d), axis=0)
     
-        a = np.unique(top_left.reshape(-1, top_left.shape[2]), axis=0)
-        b = np.unique(bottom_left.reshape(-1, bottom_left.shape[2]), axis=0)
-        c = np.unique(bottom_right.reshape(-1, bottom_right.shape[2]), axis=0)
-        d = np.unique(top_right.reshape(-1, top_right.shape[2]), axis=0)
-        borders = np.concatenate((a, b, c, d), axis=0)
-        borders_unique = np.unique(borders.reshape(-1, borders.shape[1]), axis=0)
-        bg_color = borders_unique[0]
+        bord = bord[1:, :]
+        bord_unique = np.unique(bord.reshape(-1, bord.shape[1]), axis=0)
+        bg_color = bord_unique[0]
     
-    return bg_color, borders_unique
+    return bg_color, bord_unique
 
 #Function capable of transforming rgba to rgb
 #source: https://code.i-harness.com/en/q/8bde40
@@ -113,11 +122,11 @@ def main():
     mask = cv2.imread(temp + "/segmented_" + sample_id + ".ppm")
 
     #Identify background colors
-    bg_color, borders = bg_color_identifier(mask, lines, borders, corners)
+    bg_color, bord = bg_color_identifier(mask, lines, borders, corners)
 
-    if borders.shape[0] > 1:
-        for i in range(1, borders.shape[0]):
-            mask[np.where((mask == borders[i]).all(axis=2))] = bg_color
+    if bord.shape[0] > 1:
+        for i in range(1, bord.shape[0]):
+            mask[np.where((mask == bord[i]).all(axis=2))] = bg_color
 
     #Open svs file
     print("Reading svs file...")

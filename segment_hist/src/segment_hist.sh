@@ -4,7 +4,9 @@
 
 
 PROGNAME=$( basename $0 | cut -d'.' -f1 )
-src_dir=${0%/*}
+[[ -L $0 ]] && PROGNAME=$( readlink -f $0 | cut -d'.' -f1 )
+src_dir=${PROGNAME%/*}
+PROGNAME=${PROGNAME##*/}
 cwd=$( pwd )
 
 #function printing an error message
@@ -300,5 +302,5 @@ python $src_dir/patch_selector.py $temp $image $thres $patch_size $lines $border
 [[ $save_edges == 'False' ]] && rm "$temp/edges_$image.jpg"
 
 #turn the results visible
-mv $temp "${image}_${PROGNAME}_output"
+mv "$cwd/$temp" "$cwd/${image}_${PROGNAME}_output"
 echo 'ALL DONE!'
