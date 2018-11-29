@@ -3,7 +3,7 @@
 #This will be the final script. It will work as wrapper and will connect the rest of the scripts in a single pipeline.
 
 
-PROGNAME=$( basename $0 | cut -d'.' -f1 )
+PROGNAME=$( cut -d'.' -f1 <<< $0 )
 [[ -L $0 ]] && PROGNAME=$( readlink -f $0 | cut -d'.' -f1 )
 src_dir=${PROGNAME%/*}
 PROGNAME=${PROGNAME##*/}
