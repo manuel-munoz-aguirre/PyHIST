@@ -3,8 +3,8 @@
 #This will be the final script. It will work as wrapper and will connect the rest of the scripts in a single pipeline.
 
 
-PROGNAME=$( cut -d'.' -f1 <<< $0 )
-[[ -L $0 ]] && PROGNAME=$( readlink -f $0 | cut -d'.' -f1 )
+PROGNAME=$0 
+[[ -L $0 ]] && PROGNAME=$( readlink -f $0 )
 src_dir=${PROGNAME%/*}
 PROGNAME=${PROGNAME##*/}
 cwd=$( pwd )
@@ -31,64 +31,168 @@ pleh () {
     $PROGNAME [ARGS] 
     $PROGNAME test [ARGS]
 
+    
     DESCRIPTION
     -----------
     $PROGNAME implements a semi-automatic pipeline to segment tissue slices from 
     the background in high resolution whole-slde histopathological images and 
-    produce patches of those segments from the full resolution image.
+    extracts patches of tissue segments from the full resolution image. 
 
-    $PROGNAME can function in test mode. This could assist the user in setting the 
-    appropriate parameters for the pipeline. In test mode, $PROGNAME will output
-    the segmented version of the input image  with scales indicating the number of
-    rows and columns. In that image the background should be separate from the 
-    tissue pieces for the pipeline to work properly. 
+    Whole slide histological images are very large in terms of size, making it 
+    difficult for computational pipelines to process them as single units, thus, 
+    they have to be divided into patches. Moreover, a significant portion of each 
+    image is background, which should be excluded from downstream analyses. 
+    
+    In order to efficiently segment tissue content from each image, $PROGNAME 
+    utilizes a Canny edge detector and a graph-based segmentation method. A lower 
+    resolution version of the image, extracted from the whole slide image file,
+    is segmented. The background is defined as the segments that can be found at the
+    borders or corners of the image (for more details check -b and -c arguments 
+    documentation). Finally, patches are extracted from the full size image ,while
+    the corresponding patches are checked in the segmented image. Patches with a 
+    "tissue content" greater than a threshold value (-t) are selected.
 
+    Moreover, $PROGNAME can function in test mode. This could assist the user in 
+    setting the appropriate parameters for the pipeline. In test mode, $PROGNAME 
+    will output the segmented version of the input image with scales indicating 
+    the number of rows and columns. In that image the background should be separate 
+    from the tissue pieces for the pipeline to work properly. 
+    Proper use: $PROGNAME test [-s | -m  | -k | -l | -h] -i INPUT_FILE
+
+    
     ARGUMENTS
     ---------
     -s
     --sigma_F
+        Parameter required by the segmentation algorithm. 
+        Used to smooth the input image before segmenting it.
+        Default value is 0.5.
 
     -m
     --min_F
+        Parameter required by the segmentation algorithm. 
+        Minimum segment size enforced by post-processing.
+        Larger images require higher values.
+        Default value is 100000.
 
     -k
     --k_F
+        Parameter required by the segmentation algorithm.
+        Value for the threshold function. The threshold function controls the 
+        degree to which the difference between two segments must be greater than
+        their internal differences in order for them not to be merged. Lower values
+        result in finer segmentation. Larger images require higher values.
+        Default value is 20000.
 
     -l
     --level
+        Integer indicating the level of the whole slide image file which will be 
+        used to produce the segmentation. It should be greater than 0, beacause 
+        level 0 is the full resolution image. Default value is 1, the second 
+        largest version of the image.
 
     -p
     --save_patches
+        Save the produced patches of the full resolution image. By default, 
+        $PROGNAME will not save them.
 
     -t
-    --contour_threshold
+    --content_threshold
+        Threshold parameter indicating the proportion of a patch content that 
+        should not be covered by background in order to be selected. It should
+        range between 0 and 1. Default value is 0.5.
 
     -d
     --patch_size
+        Integer indicating the size of the produced patches. A value of D
+        will produce patches of size D x D. Default value is 512. 
 
     -n
     --number_of_lines
+        Integer indicating the number of lines from the borders or the corners of
+        the segmented image that the algorithm should take into account to define
+        background. Default value is 100.
 
     -b
     --borders
+        A four digit string. Each digit represents a border of the image in the 
+        following order: left, bottom, right, top. If the digit is equal to 1 and
+        not 0, then the corresponding border will be taken into account to define
+        background. For instane, with -b 1010 the algorithm will look at the left
+        and right borders of the segmented image, in a window of width defined by
+        the -n argument, and every segment identified will be set as background. 
+        If this argument is not equal to 0000, then -c should be 0000. 
+        Default value is 1111.
 
     -c
     --corners
+        A four digit string. Each digit represents a corner of the image in the 
+        following order: top_left, bottom_left, bottom_right, top_right. If the 
+        digit is equal to 1 and not 0, then the corresponding corner will be taken
+        into account to define background. For instane, with -c 0101 the algorithm
+        will look at the bottom_left and top_right corners of the segmented image,
+        in a square window of size given by the -n argument, and every segment
+        identified will be set as background. If this argument is not equal to 0000,
+        then -b should be 0000. Default value is 0000.
 
     -x
     --save_tilecrossed_image
+        Produce a thumbnail of the original image, in which the selected patches
+        are marked with a blue X. By default, $PROGNAME will not do this.
 
     -f
     --save_mask
+        Keep the produced segmented image. By default, $PROGNAME will delete it.
 
     -e
     --save_edges
+        Keep the image produced by the Canny edge detector. 
+        By default, $PROGNAME will delete it.
 
     -i
     --image_file
+        The whole slide image input file.
 
     -h
     --help
+        Output help page.
+    
+    Note: Arguments should be separated from their values with a space!!!
+          See examples.
+
+    
+    EXAMPLES
+    --------
+    
+    Keep segmented image, save patches, produce a thumbnail with marked the
+    selected patches, use a content threshold of 0.1 for patch selection.
+    
+    $PROGNAME -pfxt 0.1 -i INPUT_FILE
+    
+    $PROGNAME -p -f -x -t 0.1 -i INPUT_FILE
+
+    Do not save patches, produce thumbnail, use different than the default values
+    for k and m parameters.
+    
+    $PROGNAME -xk 10000 -m 1000 -i INPUT_FILE
+
+    Do not save patches, produce thumbnail, use a content threshold of 0.1 for
+    patch selection, for background identification use bottom_left and top_right
+    corners.
+    
+    $PROGNAME -xt 0.1 -b 0000 -c 0101 -i INPUT_FILE
+
+    Function in test mode, use different than the default values for k and m 
+    parameters.
+    
+    $PROGNAME test -k 1000 -m 1000 -i INPUT_FILE
+
+    
+    REFERENCES
+    ----------
+    Felzenszwalb, P.F., & Huttenlocher, D.P. (2004). Efficient Graph-Based Image 
+    Segmentation. International Journal of Computer Vision, 59, 167-181.
+
 _EOF_
     return
 }
@@ -209,7 +313,7 @@ else
                                                   ;;
                 -p | --save_patches)              save_patches='True'
                                                   ;;
-                -t | --contour_threshold)         shift
+                -t | --content_threshold)         shift
                                                   thres=$1
                                                   ;;
                 -d | --patch_size)                shift

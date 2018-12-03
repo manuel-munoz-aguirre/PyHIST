@@ -81,7 +81,6 @@ def alpha_to_color(image, color=(255, 255, 255)):
     """
     Alpha composite an RGBA Image with a specified color.
     Simpler, faster version than the solutions above.
-    Source: http://.com/a/9459208/284318
     Keyword Arguments:
         image -- PIL RGBA Image object
         color -- Tuple r, g, b (default 255, 255, 255)
