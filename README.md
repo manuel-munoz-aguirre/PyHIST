@@ -52,6 +52,12 @@ Function in test mode, use different than the default values for k and m paramet
 ```bash
 segment_hist test -k 1000 -m 1000 -i INPUT_FILE
 ```
+
+Show the help page.
+
+```bash
+segment_hist -h
+```
     
 ## References
 
