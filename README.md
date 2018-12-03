@@ -1,6 +1,7 @@
 # HistologySegment
 
 ##Descritpion
+
 A semi-automatic pipeline to segment tissue slices from the background in high resolution whole-slde histopathological images. Furthermore, it extracts patches of tissue segments from the full resolution image. 
 
 Whole slide histological images are very large in terms of size, making it difficult for computational pipelines to process them as single units, thus, they have to be divided into patches. Moreover, a significant portion of each image is background, which should be excluded from downstream analyses. 
@@ -23,7 +24,9 @@ Python 3
 | Pillow                    |
 | Matplotlib                | 
 
+
 ##Examples
+
 
 Keep segmented image, save patches, produce a thumbnail with marked the selected patches, use a content threshold of 0.1 for patch selection.
     
