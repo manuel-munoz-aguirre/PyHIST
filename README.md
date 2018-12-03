@@ -1,6 +1,6 @@
 # HistologySegment
 
-##Descritpion
+## Descritpion
 
 A semi-automatic pipeline to segment tissue slices from the background in high resolution whole-slde histopathological images. Furthermore, it extracts patches of tissue segments from the full resolution image. 
 
@@ -25,7 +25,7 @@ Python 3
 | Matplotlib                | 
 
 
-##Examples
+## Examples
 
 
 Keep segmented image, save patches, produce a thumbnail with marked the selected patches, use a content threshold of 0.1 for patch selection.
@@ -53,6 +53,6 @@ Function in test mode, use different than the default values for k and m paramet
 segment_hist test -k 1000 -m 1000 -i INPUT_FILE
 ```
     
-## REFERENCES
+## References
 
 Felzenszwalb, P.F., & Huttenlocher, D.P. (2004). Efficient Graph-Based Image Segmentation. International Journal of Computer Vision, 59, 167-181.
