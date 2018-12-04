@@ -113,6 +113,7 @@ def main():
     corners = str(sys.argv[7])
     save_tilecrossed_images = str(sys.argv[8])
     save_patches = str(sys.argv[9])
+    svs_fname = str(sys.argv[10])
 
     patch_results = [] 
     
@@ -129,7 +130,7 @@ def main():
 
     #Open svs file
     print("Reading svs file...")
-    svs = openslide.OpenSlide(sample_id + ".svs")
+    svs = openslide.OpenSlide(svs_fname)
     image_dims = svs.dimensions
     print(image_dims)
 

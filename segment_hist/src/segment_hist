@@ -368,11 +368,20 @@ save_tilecrossed=${save_tilecrossed:-'False'}
 save_mask=${save_mask:-'False'}
 save_edges=${save_edges:-'False'}
 
-#check errors in borders and corners input
+#check for invalid arguments
 [[ $borders == '0000' ]] && [[ $corners == '0000' ]] && { usage 'Invalid borders and corners parameters!' >&2; exit 1; }
 [[ $borders != '0000' ]] && [[ $corners != '0000' ]] && { usage 'Invalid borders and corners parameters!' >&2; exit 1; }
 
-image=$( cut -d '.' -f1 <<< $svs )
+[[ $level =~ ^[[:digit:]]+$ ]] || { usage 'Level parameter have to be integer!' >&2; exit 1; }
+
+(( $(bc <<< "$thres >= 0 && $thres <= 1") )) || { usage 'Ivalid content threshold parameter!' >&2; exit 1; }
+
+[[ $patch_size =~ ^[[:digit:]]+$ ]] || { usage 'Patch_size parameter have to be integer!' >&2; exit 1; }
+
+[[ $lines =~ ^[[:digit:]]+$ ]] || { usage 'Number_of_lines parameter have to be integer!' >&2; exit 1; }
+
+
+image=${svs%.*}
 echo $image
 
 #create a temporary folder
@@ -399,7 +408,7 @@ rm $temp/$image.ppm
 
 #produce and select tiles
 echo 'Extracting tiles...'
-python $src_dir/patch_selector.py $temp $image $thres $patch_size $lines $borders $corners $save_tilecrossed $save_patches
+python $src_dir/patch_selector.py $temp $image $thres $patch_size $lines $borders $corners $save_tilecrossed $save_patches $svs
 
 #delete mask and edge images
 [[ $save_mask == 'False' ]] && rm "$temp/segmented_$image.ppm"
