@@ -58,7 +58,13 @@ Show the help page.
 ```bash
 segment_hist -h
 ```
-    
+
+## Building the docker image
+
+```
+docker build -f docker/Dockerfile -t HistologySegment .
+```
+
 ## References
 
 Felzenszwalb, P.F., & Huttenlocher, D.P. (2004). Efficient Graph-Based Image Segmentation. International Journal of Computer Vision, 59, 167-181.
