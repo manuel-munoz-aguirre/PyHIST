@@ -1,3 +1,7 @@
+LABEL maintainer "Manuel Munoz <manuel.munoz@crg.eu>" \
+	version "1.0" \
+	description "Docker image for HistologySegment"
+
 # Build conda environment
 FROM continuumio/miniconda3
 ADD environment.yml /tmp/environment.yml

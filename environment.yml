@@ -99,4 +99,3 @@ dependencies:
     - virtualenv==16.0.0
     - virtualenv-clone==0.3.0
     - virtualenvwrapper==4.8.2
-prefix: /home/mmunoz/anaconda3/envs/pygeneral
