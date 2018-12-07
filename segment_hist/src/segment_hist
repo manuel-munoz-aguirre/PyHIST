@@ -382,6 +382,7 @@ save_edges=${save_edges:-'False'}
 
 
 image=${svs%.*}
+image=${image##*/}
 echo $image
 
 #create a temporary folder
