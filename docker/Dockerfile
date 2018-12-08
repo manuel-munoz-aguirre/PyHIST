@@ -16,7 +16,8 @@ ENV PATH /opt/conda/envs/$(head -1 /tmp/environment.yml | cut -d' ' -f2)/bin:$PA
 # Install build utilities
 RUN apt-get update --fix-missing -qq && \
 	apt-get install -y -q build-essential \
-	libmagickwand-dev
+	libmagickwand-dev \
+	libgl1-mesa-glx
 
 # Copy script
 WORKDIR /segment_hist
