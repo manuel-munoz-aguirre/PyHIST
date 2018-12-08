@@ -1,15 +1,6 @@
 #!/bin/bash
-#This is not the final version.
-#This will be the final script. It will work as wrapper and will connect the rest of the scripts in a single pipeline.
 
-
-PROGNAME=$0 
-[[ -L $0 ]] && PROGNAME=$( readlink -f $0 )
-src_dir=${PROGNAME%/*}
-PROGNAME=${PROGNAME##*/}
-cwd=$( pwd )
-
-#function printing an error message
+# Usage message
 usage () {
     cat <<-_EOF_
         $PROGNAME: usage: $PROGNAME [test] [ARGS]
@@ -19,8 +10,7 @@ _EOF_
     return
 }
 
-
-#function that print the help page
+# Print the help page
 pleh () {
     less <<- _EOF_
     $PROGNAME
@@ -197,20 +187,17 @@ _EOF_
     return
 }
 
+# Settings
+PROGNAME=`basename "$0"`
+cd "$(dirname "$0")"
 
-#check if the required files for the Felzenszwalb algorithm are already set up
-if [[ ! (-d "$src_dir/Felzenszwalb_algorithm")  ]]; then
-    echo Initial set up...
-    cd $src_dir/
-    unzip ../Felzenszwalb_algorithm.zip 
-    mv segment Felzenszwalb_algorithm
-    cd Felzenszwalb_algorithm
+# Check if the Felzenswalb algorithm is compiled
+if [ ! -f src/Felzenszwalb_algorithm/segment ]; then
+    echo "Compiling Felzenswalb algorithm..."
+    cd src/Felzenszwalb_algorithm
     make
-    cd $cwd
-    echo ...OK
+    echo "Done"
 fi
-
-#echo "$@"
 
 #read command line arguments
 if [[ $1 == 'test' ]]; then
@@ -352,7 +339,6 @@ fi
 #check for the image input
 [[ -n $svs ]] || { usage 'Invalid or absent input!' >&2; exit 1; }
 
-
 #set default values for parameters
 sigma=${sigma:-0.5}
 min=${min:-100000}
@@ -368,53 +354,57 @@ save_tilecrossed=${save_tilecrossed:-'False'}
 save_mask=${save_mask:-'False'}
 save_edges=${save_edges:-'False'}
 
-#check for invalid arguments
+# Argument checking
+# Borders
 [[ $borders == '0000' ]] && [[ $corners == '0000' ]] && { usage 'Invalid borders and corners parameters!' >&2; exit 1; }
 [[ $borders != '0000' ]] && [[ $corners != '0000' ]] && { usage 'Invalid borders and corners parameters!' >&2; exit 1; }
 
-[[ $level =~ ^[[:digit:]]+$ ]] || { usage 'Level parameter have to be integer!' >&2; exit 1; }
+# Image level
+[[ $level =~ ^[[:digit:]]+$ ]] || { usage 'Level parameter has to be integer!' >&2; exit 1; }
 
-(( $(bc <<< "$thres >= 0 && $thres <= 1") )) || { usage 'Ivalid content threshold parameter!' >&2; exit 1; }
+# Content threshold for the image
+(( $(bc <<< "$thres >= 0 && $thres <= 1") )) || { usage 'Invalid content threshold parameter!' >&2; exit 1; }
 
-[[ $patch_size =~ ^[[:digit:]]+$ ]] || { usage 'Patch_size parameter have to be integer!' >&2; exit 1; }
+# Patch size
+[[ $patch_size =~ ^[[:digit:]]+$ ]] || { usage 'patch_size parameter has to be integer!' >&2; exit 1; }
 
-[[ $lines =~ ^[[:digit:]]+$ ]] || { usage 'Number_of_lines parameter have to be integer!' >&2; exit 1; }
+# Lines to check on the borders
+[[ $lines =~ ^[[:digit:]]+$ ]] || { usage 'number_of_lines parameter has to be integer!' >&2; exit 1; }
 
-
+#create a temporary folder
+dt=$(date '+%d%m%y%H%M%S')
 image=${svs%.*}
 image=${image##*/}
 echo $image
-
-#create a temporary folder
-temp=".$PROGNAME-$image.$$_$RANDOM"
+temp="${image}_${dt}"
 mkdir $temp
 
 #produce edge image
 echo 'Producing edge image...'
-python "$src_dir/produce_edges.py" $svs "$temp/edges_$image.jpg" $level
-convert "$temp/edges_$image.jpg" "$temp/$image.ppm"
-echo OK
+python "src/produce_edges.py" $svs "$temp/edges_$image.jpg" $level
+# convert "$temp/edges_$image.jpg" "$temp/$image.ppm"
+# echo OK
 
-#run Felzenszwalb algorithm
-echo 'Segmenting image...'
-$src_dir/Felzenszwalb_algorithm/segment $sigma $k $min "$temp/$image.ppm" "$temp/segmented_$image.ppm"
-echo OK
+# #run Felzenszwalb algorithm
+# echo 'Segmenting image...'
+# src/Felzenszwalb_algorithm/segment $sigma $k $min "$temp/$image.ppm" "$temp/segmented_$image.ppm"
+# echo OK
 
-#delete image.ppm
-rm $temp/$image.ppm
+# #delete image.ppm
+# rm $temp/$image.ppm
 
-#test mode
-[[ $test_image == 'True' ]] && { echo "Producing test image..."; python $src_dir/test_image.py $temp $image; mv "$temp/test_$image.png" $cwd; rm -r $temp; echo "ALL DONE!"; exit; }
+# #test mode
+# [[ $test_image == 'True' ]] && { echo "Producing test image..."; python src/test_image.py $temp $image; mv "$temp/test_$image.png" $cwd; rm -r $temp; echo "ALL DONE!"; exit; }
 
 
-#produce and select tiles
-echo 'Extracting tiles...'
-python $src_dir/patch_selector.py $temp $image $thres $patch_size $lines $borders $corners $save_tilecrossed $save_patches $svs
+# #produce and select tiles
+# echo 'Extracting tiles...'
+# python src/patch_selector.py $temp $image $thres $patch_size $lines $borders $corners $save_tilecrossed $save_patches $svs
 
-#delete mask and edge images
-[[ $save_mask == 'False' ]] && rm "$temp/segmented_$image.ppm"
-[[ $save_edges == 'False' ]] && rm "$temp/edges_$image.jpg"
+# #delete mask and edge images
+# [[ $save_mask == 'False' ]] && rm "$temp/segmented_$image.ppm"
+# [[ $save_edges == 'False' ]] && rm "$temp/edges_$image.jpg"
 
-#turn the results visible
-mv "$cwd/$temp" "$cwd/${image}_${PROGNAME}_output"
-echo 'ALL DONE!'
+# #turn the results visible
+# mv "$temp" "${image}_${PROGNAME}_output"
+# echo 'ALL DONE!'

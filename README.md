@@ -62,7 +62,7 @@ segment_hist -h
 ## Building the docker image
 
 ```
-docker build -f docker/Dockerfile -t HistologySegment .
+docker build -f docker/Dockerfile -t histologysegment .
 ```
 
 ## References
