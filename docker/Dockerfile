@@ -14,7 +14,9 @@ RUN echo "source activate $(head -1 /tmp/environment.yml | cut -d' ' -f2)" > ~/.
 ENV PATH /opt/conda/envs/$(head -1 /tmp/environment.yml | cut -d' ' -f2)/bin:$PATH
 
 # Install build utilities
-RUN apt-get update --fix-missing -qq && apt-get install -y -q build-essential
+RUN apt-get update --fix-missing -qq && \
+	apt-get install -y -q build-essential \
+	libmagickwand-dev
 
 # Copy script
 WORKDIR /segment_hist
