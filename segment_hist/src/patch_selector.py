@@ -184,6 +184,7 @@ def main():
         print("Saving tiles...")
         for (idx, p) in enumerate(patches):
             if preds[idx] == 1:
+                p = p[...,::-1]
                 cv2.imwrite((out_tiles + tile_names[idx] + ".jpg"), p)
 
 
