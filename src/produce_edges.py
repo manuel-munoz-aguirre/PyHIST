@@ -27,15 +27,11 @@ def alpha_to_color(image, color=(255, 255, 255)):
     background.paste(image, mask=image.split()[3])  # 3 is the alpha channel
     return background
 
-#read input, output file names and the specified level of the svs from the command line arguments
-in_img = str(sys.argv[1]) 
-out_img = str(sys.argv[2])
-level = int(sys.argv[3])
+def run(in_img, out_img, level):
+    #read the image and apply Canny edge detector
+    svs = openslide.OpenSlide(in_img)
+    img = np.array(alpha_to_color(svs.read_region((0,0), level, svs.level_dimensions[level])))
+    edges = cv2.Canny(img, 100, 200)
 
-#read the image and apply Canny edge detector
-svs = openslide.OpenSlide(in_img)
-img = np.array(alpha_to_color(svs.read_region((0,0), level, svs.level_dimensions[level])))
-edges = cv2.Canny(img, 100, 200)
-
-#save the produced image
-cv2.imwrite(out_img, edges)
+    #save the produced image
+    cv2.imwrite(out_img, edges)
