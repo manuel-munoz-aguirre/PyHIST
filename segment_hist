@@ -258,6 +258,6 @@ if __name__ == "__main__":
                         args.save_patches, args.svs)
 
     # Delete segmented and edge images
-    if (!args.save_mask): os.remove("segmented_" + sample_id + ".ppm")
-    if (!args.save_edges): os.remove("edges_" + sample_id + ".jpg")
+    if (not args.save_mask): os.remove("segmented_" + sample_id + ".ppm")
+    if (not args.save_edges): os.remove("edges_" + sample_id + ".jpg")
     print(ALL DONE!)
