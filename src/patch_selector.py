@@ -10,9 +10,9 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     
     #Function that classifies a tile to be selected or not
     def selector(mask_patch, thres, bg_color):
-       '''
+        '''
         classifies a tile to be selected or not
-       '''
+        '''
         bg = mask_patch == bg_color
         bg = bg.view(dtype=np.int8)
         #bg = np.mean(bg, axis=2)
