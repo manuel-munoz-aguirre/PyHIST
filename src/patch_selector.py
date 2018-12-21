@@ -221,6 +221,6 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     
     #save results in a tsv file
     patch_results_df = pd.DataFrame.from_records(patch_results, columns=["Tile", "Dimensions", "Keep"])
-    patch_results_df.to_csv("/tile_selection.tsv", index=False, sep="\t")
+    patch_results_df.to_csv("tile_selection.tsv", index=False, sep="\t")
     
     print("OK")

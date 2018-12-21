@@ -228,7 +228,8 @@ if __name__ == "__main__":
 
     # Run the segmentation algorithm
     print('Producing segmented image...')
-    utility_functions.produce_segmented_image(sample_id)
+    utility_functions.produce_segmented_image(sample_id, args.sigma,
+                                              args.k_const, args.min)
 
     # delete image.ppm
     os.remove("ppmout.ppm")

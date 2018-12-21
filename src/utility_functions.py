@@ -55,9 +55,9 @@ def produce_test_image(image):
 
     warnings.filterwarnings("default")
 
-def produce_segmented_image(sample_id):
-    bashCommand = "src/Felzenszwalb_algorithm/segment " + args.sigma + " " + \
-    args.k_const + " " + args.min + " ppmout.ppm" + " segmented_" + sample_id + \
+def produce_segmented_image(sample_id, sigma, k_const, min):
+    bashCommand = "src/Felzenszwalb_algorithm/segment " + str(sigma) + " " + \
+    str(k_const) + " " + str(min) + " ppmout.ppm" + " segmented_" + sample_id + \
     ".ppm"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
