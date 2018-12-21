@@ -1,3 +1,12 @@
+from wand.image import Image as wImage
+from PIL import Image
+import openslide
+import numpy as np
+import cv2
+import warnings
+from matplotlib import pyplot as plt
+import subprocess
+
 # Modify this function to write to correct paths
 def convert_to_ppm(infile):
     img = wImage(filename=infile)

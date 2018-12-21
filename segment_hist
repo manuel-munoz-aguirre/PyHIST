@@ -1,20 +1,12 @@
 #!/usr/bin/env python
 
+#load required libraries
 import os
-import subprocess
 import platform
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 import itertools as it
 from src import utility_functions, patch_selector
-import numpy as np
-import pandas as pd
-import cv2
-import openslide
-from PIL import Image
-from matplotlib import pyplot as plt
-import warnings
-from wand.image import Image as wImage
 
 
 def build_parser():

@@ -1,3 +1,11 @@
+#load required libraries
+import pandas as pd
+import numpy as np
+import openslide
+import cv2
+from PIL import Image
+import os
+
 def run(sample_id, threshold, patch_size, lines, borders, corners, 
         save_tilecrossed_images, save_patches, svs_fname):
 
