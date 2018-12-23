@@ -213,7 +213,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     
         # Once finished, resize output image and save it
         blank_canvas.thumbnail((round(image_dims[0] * .05), round(image_dims[1] * .05)))
-        blank_canvas.save("/tilecrossed_" + sample_id + ".jpg")
+        blank_canvas.save("tilecrossed_" + sample_id + ".jpg")
     
     
     #save preds of each image

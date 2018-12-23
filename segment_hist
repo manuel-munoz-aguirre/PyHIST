@@ -216,7 +216,8 @@ if __name__ == "__main__":
     ##Content_threshold
     if args.thres > 1 or args.thres < 0: eprint("CONTENT_THRESHOLD should be a float number between 0 and 1! Exiting."); sys.exit(1) 
 
-    sample_id = args.svs.split('.')[0]
+    sample_id = args.svs.split('/')[-1]
+    sample_id = sample_id.split('.')[0]
 
     # Produce edge image
     print ('Producing edge image...')
