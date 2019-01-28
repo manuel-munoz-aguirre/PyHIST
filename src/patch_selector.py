@@ -86,22 +86,6 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
         
         return bg_color, bord_unique
     
-    #Function capable of transforming rgba to rgb
-    #source: https://code.i-harness.com/en/q/8bde40
-    def alpha_to_color(image, color=(255, 255, 255)):
-        """
-        Alpha composite an RGBA Image with a specified color.
-        Simpler, faster version than the solutions above.
-        Keyword Arguments:
-            image -- PIL RGBA Image object
-            color -- Tuple r, g, b (default 255, 255, 255)
-        """
-        image.load()  # needed for split()
-        background = Image.new('RGB', image.size, color)
-        background.paste(image, mask=image.split()[3])  # 3 is the alpha channel
-        return background
-    
-    
     def count_n_tiles(dims, patch_size):
         '''
         Counts the number of tiles the image is going to split.
@@ -163,7 +147,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
         height = min(patch_size, (image_dims[1] - rows))
         #Extract tile from the svs file
         tile = svs.read_region((columns, rows), 0, (width, height))
-        patches[i] = np.array(alpha_to_color(tile))
+        patches[i] = np.array(tile.convert('RGB'))
     
         tile_names.append(sample_id + "_" + str((i + 1)).rjust(digits, '0'))
         tile_dims.append(str(width) + "x" + str(height))

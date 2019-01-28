@@ -7,7 +7,6 @@ import warnings
 from matplotlib import pyplot as plt
 import subprocess
 
-# Modify this function to write to correct paths
 def convert_to_ppm(infile):
     img = wImage(filename=infile)
     converted_img = img.convert('ppm')
@@ -19,24 +18,10 @@ def produce_edges(in_img, out_img, level):
     library to produce an image in which the detected edges are marked.
     '''
 
-    #Function capable of transforming rgba to rgb
-    #source: https://code.i-harness.com/en/q/8bde40
-    def alpha_to_color(image, color=(255, 255, 255)):
-        """
-        Alpha composite an RGBA Image with a specified color.
-        Simpler, faster version than the solutions above.
-        Keyword Arguments:
-            image -- PIL RGBA Image object
-            color -- Tuple r, g, b (default 255, 255, 255)
-        """
-        image.load()  # needed for split()
-        background = Image.new('RGB', image.size, color)
-        background.paste(image, mask=image.split()[3])  # 3 is the alpha channel
-        return background
-
     #read the image
     svs = openslide.OpenSlide(in_img)
-    img = np.array(alpha_to_color(svs.read_region((0,0), level, svs.level_dimensions[level])))
+    img = svs.read_region((0,0), level, svs.level_dimensions[level])
+    img = np.array(img.convert('RGB'))
     img = img[...,::-1]
 
     #run Canny edge detector
