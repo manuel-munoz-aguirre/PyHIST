@@ -134,19 +134,24 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
             os.makedirs(out_tiles)
     
     preds = [None] * n_tiles
-    patches = np.empty((n_tiles,), dtype=object)
     #Categorize tiles using the selector function
     print("Producing patches...")
+
     rows, columns, i = 0, 0, 0
     mask_rows, mask_columns = 0, 0
     tile_names = []
     tile_dims = []
+    
+    if save_tilecrossed_images:
+        blank_canvas = Image.new("RGB", (round(image_dims[0] * .05), round(image_dims[1] * .05)), "white")
+        w = 0
+        h = 0
+
     while (columns, rows) != (0, image_dims[1]):
         width = min(patch_size, (image_dims[0] - columns))
         height = min(patch_size, (image_dims[1] - rows))
         #Extract tile from the svs file
         tile = svs.read_region((columns, rows), 0, (width, height))
-        patches[i] = np.array(tile.convert('RGB'))
     
         tile_names.append(sample_id + "_" + str((i + 1)).rjust(digits, '0'))
         tile_dims.append(str(width) + "x" + str(height))
@@ -158,6 +163,32 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     
         #make te prediction
         preds[i] = selector(mask_patch, threshold, bg_color)
+    
+        #save patches with tissue content
+        if save_patches:
+            if preds[i] == 1:
+                p = np.array(tile.convert('RGB'))
+                p = p[...,::-1]
+                cv2.imwrite((out_tiles + tile_names[i] + ".jpg"), p)
+    
+        #write tilecrossed image:
+        if save_tilecrossed_images:
+                
+            p = np.array(tile.convert('RGB'))
+            p = p[...,::-1]
+            p = cv2.resize(p, None, fx=0.05, fy=0.05, interpolation = cv2.INTER_AREA)
+    
+            # If the patch is selected, we draw a cross over it
+            if preds[i] == 1:
+                cv2.line(p, (0, 0), (p.shape[0] - 1, p.shape[1] - 1), (0, 0, 255), 10)
+                cv2.line(p, (0, p.shape[1] - 1), (p.shape[0] - 1, 0), (0, 0, 255), 10)
+    
+            # Write to the canvas and change coordinates
+            blank_canvas.paste(Image.fromarray(p), (w, h))
+            w += p.shape[1]
+            if w == round(image_dims[0] * .05):
+                w = 0
+                h = h + p.shape[0]
     
         #move coordinates
         i += 1
@@ -171,42 +202,9 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
             mask_columns = 0
             mask_rows += mask_height
 
-    
-    #save patches with tissue content
-    if save_patches:
-        print("Saving tiles...")
-        for (idx, p) in enumerate(patches):
-            if preds[idx] == 1:
-                p = p[...,::-1]
-                cv2.imwrite((out_tiles + tile_names[idx] + ".jpg"), p)
-    
-    
-    #write tilecrossed image:
+    #Save tilecrossed image
     if save_tilecrossed_images:
-        print("Producing tilecrossed image...")
-    
-        blank_canvas = Image.new("RGB", image_dims, "white")
-        w = 0
-        h = 0
-    
-        for (idx, p) in enumerate(patches):
-            
-            # If the patch is selected, we draw a cross over it
-            if preds[idx] == 1:
-                cv2.line(p, (0, 0), (p.shape[0] - 1, p.shape[1] - 1), (0, 0, 255), 10)
-                cv2.line(p, (0, p.shape[1] - 1), (p.shape[0] - 1, 0), (0, 0, 255), 10)
-    
-            # Write to the canvas and change coordinates
-            blank_canvas.paste(Image.fromarray(p), (w, h))
-            w += p.shape[1]
-            if w == image_dims[0]:
-                w = 0
-                h = h + p.shape[0]
-    
-        # Once finished, resize output image and save it
-        blank_canvas.thumbnail((round(image_dims[0] * .05), round(image_dims[1] * .05)))
         blank_canvas.save("tilecrossed_" + sample_id + ".jpg")
-    
     
     #save preds of each image
     patch_results.extend(list(zip(tile_names, tile_dims, preds)))
