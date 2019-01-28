@@ -249,7 +249,7 @@ if __name__ == "__main__":
     # Produce and select tiles
     patch_selector.run(sample_id, args.thres, args.patch_size, args.lines, 
                         args.borders, args.corners, args.save_tilecrossed_image, 
-                        args.save_patches, args.svs)
+                        args.save_patches, args.svs, args.level)
 
     # Delete segmented and edge images
     if (not args.save_mask): os.remove("segmented_" + sample_id + ".ppm")

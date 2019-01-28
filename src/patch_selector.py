@@ -7,7 +7,7 @@ from PIL import Image
 import os
 
 def run(sample_id, threshold, patch_size, lines, borders, corners, 
-        save_tilecrossed_images, save_patches, svs_fname):
+        save_tilecrossed_images, save_patches, svs_fname, level):
 
     '''
     Chops the full resolution image to patches of a given size.
@@ -119,15 +119,13 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     image_dims = svs.dimensions
     print(image_dims)
     
-    #Resize mask to the dims of the high resolution image
-    print("Resizing mask...")
-    mask_zoomed = cv2.resize(mask, image_dims, interpolation = cv2.INTER_LINEAR)
-    
     #Count the number of tiles
     n_tiles = count_n_tiles(image_dims, patch_size)
     print(str(n_tiles) + " tiles")
     digits = len(str(n_tiles)) + 1
     
+    #calc patch size in mask
+    mask_patch_size = int(np.ceil([patch_size/svs.level_downsamples[level]]))
     
     #create folders for the patches
     if save_patches:
@@ -140,6 +138,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     #Categorize tiles using the selector function
     print("Producing patches...")
     rows, columns, i = 0, 0, 0
+    mask_rows, mask_columns = 0, 0
     tile_names = []
     tile_dims = []
     while (columns, rows) != (0, image_dims[1]):
@@ -153,16 +152,25 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
         tile_dims.append(str(width) + "x" + str(height))
     
         #Extract the corresponing tile from the mask
-        mask_patch = mask_zoomed[rows:(rows + height), columns:(columns + width), :]
+        mask_width = min(mask_patch_size, (mask.shape[1] - mask_columns))
+        mask_height = min(mask_patch_size, (mask.shape[0] - mask_rows))
+        mask_patch = mask[mask_rows:(mask_rows + mask_height), mask_columns:(mask_columns + mask_width), :]
     
         #make te prediction
         preds[i] = selector(mask_patch, threshold, bg_color)
     
+        #move coordinates
         i += 1
         columns += width
         if columns == image_dims[0]:
             columns = 0
             rows += height
+
+        mask_columns += mask_width
+        if mask_columns == mask.shape[1]:
+            mask_columns = 0
+            mask_rows += mask_height
+
     
     #save patches with tissue content
     if save_patches:
