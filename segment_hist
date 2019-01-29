@@ -128,7 +128,7 @@ def build_parser():
     perms = list(set(it.permutations(['0','0','0','0','1','1','1','1'], 4)))
     combs = []
     for perm in perms: combs.append(''.join(perm))
-    parser.add_argument('-b', '--borders', type=str, default='1111', help='''
+    parser.add_argument('--borders', type=str, default='1111', help='''
     A four digit string. Each digit represents a border of the image in the 
     following order: left, bottom, right, top. If the digit is equal to 1 and
     not 0, then the corresponding border will be taken into account to define
@@ -139,7 +139,7 @@ def build_parser():
     Default value is 1111.
     ''', choices=combs)
     
-    parser.add_argument('-c', '--corners', type=str, default='0000', help='''
+    parser.add_argument('--corners', type=str, default='0000', help='''
     A four digit string. Each digit represents a corner of the image in the 
     following order: top_left, bottom_left, bottom_right, top_right. If the 
     digit is equal to 1 and not 0, then the corresponding corner will be taken
@@ -219,28 +219,33 @@ if __name__ == "__main__":
     sample_id = args.svs.split('/')[-1]
     sample_id = sample_id.split('.')[0]
 
+    # Create output folder 
+    output = 'segment_hist_output/'
+    if not os.path.exists(output):
+        os.makedirs(output)
+
     # Produce edge image
     print ('Producing edge image...')
-    utility_functions.produce_edges(args.svs, "edges_" + sample_id  + ".jpg", args.level)
+    utility_functions.produce_edges(args.svs, output + "edges_" + sample_id  + ".jpg", args.level)
 
     # Convert to ppm
     print('Converting to ppm...')
-    utility_functions.convert_to_ppm("edges_" + sample_id + ".jpg")
+    utility_functions.convert_to_ppm(output, "edges_" + sample_id + ".jpg")
 
     # Run the segmentation algorithm
     print('Producing segmented image...')
-    utility_functions.produce_segmented_image(sample_id, args.sigma,
+    utility_functions.produce_segmented_image(sample_id, output, args.sigma,
                                               args.k_const, args.min)
 
     # delete image.ppm
-    os.remove("ppmout.ppm")
+    os.remove(output + "ppmout.ppm")
 
     # test mode
     if (args.test):
         print('Producing test image...')
-        utility_functions.produce_test_image(sample_id)
-        os.remove("edges_" + sample_id + ".jpg")
-        os.remove("segmented_" + sample_id + ".ppm")
+        utility_functions.produce_test_image(sample_id, output)
+        os.remove(output + "edges_" + sample_id + ".jpg")
+        os.remove(output + "segmented_" + sample_id + ".ppm")
         
         print('ALL DONE!')
         sys.exit(0)
@@ -249,9 +254,9 @@ if __name__ == "__main__":
     # Produce and select tiles
     patch_selector.run(sample_id, args.thres, args.patch_size, args.lines, 
                         args.borders, args.corners, args.save_tilecrossed_image, 
-                        args.save_patches, args.svs, args.level)
+                        args.save_patches, args.svs, args.level, output)
 
     # Delete segmented and edge images
-    if (not args.save_mask): os.remove("segmented_" + sample_id + ".ppm")
-    if (not args.save_edges): os.remove("edges_" + sample_id + ".jpg")
+    if (not args.save_mask): os.remove(output + "segmented_" + sample_id + ".ppm")
+    if (not args.save_edges): os.remove(output + "edges_" + sample_id + ".jpg")
     print('ALL DONE!')

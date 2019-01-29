@@ -6,11 +6,12 @@ import cv2
 import warnings
 from matplotlib import pyplot as plt
 import subprocess
+import os
 
-def convert_to_ppm(infile):
-    img = wImage(filename=infile)
+def convert_to_ppm(out_folder, infile):
+    img = wImage(filename= out_folder + infile)
     converted_img = img.convert('ppm')
-    converted_img.save(filename='ppmout.ppm') 
+    converted_img.save(filename= out_folder + 'ppmout.ppm') 
 
 def produce_edges(in_img, out_img, level):
     '''
@@ -31,19 +32,19 @@ def produce_edges(in_img, out_img, level):
     cv2.imwrite(out_img, edges)
     
 
-def produce_test_image(image):
+def produce_test_image(image, out_folder):
     warnings.filterwarnings("ignore")
 
-    mask = cv2.imread("segmented_" + image + ".ppm")
+    mask = cv2.imread(out_folder + "segmented_" + image + ".ppm")
     test_image = plt.imshow(mask)
-    plt.savefig("test_" + image + ".png")
+    plt.savefig(out_folder + "test_" + image + ".png")
 
     warnings.filterwarnings("default")
 
-def produce_segmented_image(sample_id, sigma, k_const, min):
+def produce_segmented_image(sample_id, out_folder, sigma, k_const, min):
     bashCommand = "src/Felzenszwalb_algorithm/segment " + str(sigma) + " " + \
-    str(k_const) + " " + str(min) + " ppmout.ppm" + " segmented_" + sample_id + \
-    ".ppm"
+    str(k_const) + " " + str(min) + " " + out_folder + "ppmout.ppm" + " " + \
+    out_folder + "segmented_" + sample_id + ".ppm"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
 

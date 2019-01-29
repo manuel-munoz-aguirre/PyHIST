@@ -7,7 +7,7 @@ from PIL import Image
 import os
 
 def run(sample_id, threshold, patch_size, lines, borders, corners, 
-        save_tilecrossed_images, save_patches, svs_fname, level):
+        save_tilecrossed_images, save_patches, svs_fname, level, out_folder):
 
     '''
     Chops the full resolution image to patches of a given size.
@@ -104,7 +104,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     
     #Open mask image
     print("Reading mask...")
-    mask = cv2.imread("segmented_" + sample_id + ".ppm")
+    mask = cv2.imread(out_folder + "segmented_" + sample_id + ".ppm")
     
     #Identify background colors
     bg_color, bord = bg_color_identifier(mask, lines, borders, corners)
@@ -129,7 +129,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     
     #create folders for the patches
     if save_patches:
-        out_tiles = sample_id + "_tiles/"
+        out_tiles = out_folder + sample_id + "_tiles/"
         if not os.path.exists(out_tiles):
             os.makedirs(out_tiles)
     
@@ -204,13 +204,13 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
 
     #Save tilecrossed image
     if save_tilecrossed_images:
-        blank_canvas.save("tilecrossed_" + sample_id + ".jpg")
+        blank_canvas.save(out_folder + "tilecrossed_" + sample_id + ".jpg")
     
     #save preds of each image
     patch_results.extend(list(zip(tile_names, tile_dims, preds)))
     
     #save results in a tsv file
     patch_results_df = pd.DataFrame.from_records(patch_results, columns=["Tile", "Dimensions", "Keep"])
-    patch_results_df.to_csv("tile_selection.tsv", index=False, sep="\t")
+    patch_results_df.to_csv(out_folder + "tile_selection.tsv", index=False, sep="\t")
     
     print("OK")
