@@ -226,25 +226,17 @@ if __name__ == "__main__":
 
     # Produce edge image
     print ('Producing edge image...')
-    utility_functions.produce_edges(args.svs, output + "edges_" + sample_id  + ".jpg", args.level)
-
-    # Convert to ppm
-    print('Converting to ppm...')
-    utility_functions.convert_to_ppm(output, "edges_" + sample_id + ".jpg")
+    utility_functions.produce_edges(args.svs, output + "edges_" + sample_id  + ".ppm", args.level)
 
     # Run the segmentation algorithm
     print('Producing segmented image...')
     utility_functions.produce_segmented_image(sample_id, output, args.sigma,
                                               args.k_const, args.min)
-
-    # delete image.ppm
-    os.remove(output + "ppmout.ppm")
-
     # test mode
     if (args.test):
         print('Producing test image...')
         utility_functions.produce_test_image(sample_id, output)
-        os.remove(output + "edges_" + sample_id + ".jpg")
+        os.remove(output + "edges_" + sample_id + ".ppm")
         os.remove(output + "segmented_" + sample_id + ".ppm")
         
         print('ALL DONE!')
@@ -258,5 +250,5 @@ if __name__ == "__main__":
 
     # Delete segmented and edge images
     if (not args.save_mask): os.remove(output + "segmented_" + sample_id + ".ppm")
-    if (not args.save_edges): os.remove(output + "edges_" + sample_id + ".jpg")
+    if (not args.save_edges): os.remove(output + "edges_" + sample_id + ".ppm")
     print('ALL DONE!')

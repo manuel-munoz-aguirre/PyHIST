@@ -1,4 +1,3 @@
-from wand.image import Image as wImage
 from PIL import Image
 import openslide
 import numpy as np
@@ -7,11 +6,6 @@ import warnings
 from matplotlib import pyplot as plt
 import subprocess
 import os
-
-def convert_to_ppm(out_folder, infile):
-    img = wImage(filename= out_folder + infile)
-    converted_img = img.convert('ppm')
-    converted_img.save(filename= out_folder + 'ppmout.ppm') 
 
 def produce_edges(in_img, out_img, level):
     '''
@@ -28,8 +22,15 @@ def produce_edges(in_img, out_img, level):
     #run Canny edge detector
     edges = cv2.Canny(img, 100, 200)
 
-    #save the produced image
-    cv2.imwrite(out_img, edges)
+    #save the produced image in a ppm format
+    edges = Image.fromarray(edges)
+    warnings.filterwarnings("ignore")
+
+    edges = edges.convert('RGB')
+    edges.save(out_img, 'PPM') 
+
+    warnings.filterwarnings("default")
+
     
 
 def produce_test_image(image, out_folder):
@@ -43,7 +44,7 @@ def produce_test_image(image, out_folder):
 
 def produce_segmented_image(sample_id, out_folder, sigma, k_const, min):
     bashCommand = "src/Felzenszwalb_algorithm/segment " + str(sigma) + " " + \
-    str(k_const) + " " + str(min) + " " + out_folder + "ppmout.ppm" + " " + \
+    str(k_const) + " " + str(min) + " " + out_folder + "edges_" + sample_id + ".ppm" + " " + \
     out_folder + "segmented_" + sample_id + ".ppm"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
