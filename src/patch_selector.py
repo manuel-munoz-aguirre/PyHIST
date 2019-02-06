@@ -5,6 +5,7 @@ import openslide
 import cv2
 from PIL import Image
 import os
+import math
 
 def run(sample_id, threshold, patch_size, lines, borders, corners, 
         save_tilecrossed_images, save_patches, svs_fname, level, out_folder):
@@ -96,7 +97,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
         height = dims[1] // patch_size
         if dims[1] % patch_size > 0: height += 1
         n_tiles = width * height
-        return n_tiles
+        return n_tiles, width, height
     
     
     
@@ -120,7 +121,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     print(image_dims)
     
     #Count the number of tiles
-    n_tiles = count_n_tiles(image_dims, patch_size)
+    n_tiles, *n_tiles_ax = count_n_tiles(image_dims, patch_size)
     print(str(n_tiles) + " tiles")
     digits = len(str(n_tiles)) + 1
     
@@ -143,7 +144,7 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     tile_dims = []
     
     if save_tilecrossed_images:
-        blank_canvas = Image.new("RGB", (round(image_dims[0] * .05), round(image_dims[1] * .05)), "white")
+        blank_canvas = Image.new("RGB", (math.trunc(image_dims[0] * .05), math.trunc(image_dims[1] * .05)), "white")
         w = 0
         h = 0
 
@@ -175,18 +176,17 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
         if save_tilecrossed_images:
                 
             p = np.array(tile.convert('RGB'))
-            p = p[...,::-1]
-            p = cv2.resize(p, None, fx=0.05, fy=0.05, interpolation = cv2.INTER_AREA)
+            p = cv2.resize(p, (math.trunc(width * .05), math.trunc(height * .05)), interpolation = cv2.INTER_AREA)
     
             # If the patch is selected, we draw a cross over it
             if preds[i] == 1:
-                cv2.line(p, (0, 0), (p.shape[0] - 1, p.shape[1] - 1), (0, 0, 255), 10)
-                cv2.line(p, (0, p.shape[1] - 1), (p.shape[0] - 1, 0), (0, 0, 255), 10)
+                cv2.line(p, (0, 0), (p.shape[0] - 1, p.shape[1] - 1), (0, 0, 255), 2)
+                cv2.line(p, (0, p.shape[1] - 1), (p.shape[0] - 1, 0), (0, 0, 255), 2)
     
             # Write to the canvas and change coordinates
             blank_canvas.paste(Image.fromarray(p), (w, h))
             w += p.shape[1]
-            if w == round(image_dims[0] * .05):
+            if i > 0 and i % n_tiles_ax[0] == 0:
                 w = 0
                 h = h + p.shape[0]
     
