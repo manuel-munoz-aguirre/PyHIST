@@ -11,7 +11,6 @@ In order to efficiently segment tissue content from each image, the pipeline uti
 Moreover, the pipeline can function in test mode. This could assist the user in setting the appropriate parameters for the pipeline. In test mode, the segmented version of the input image with scales indicating the number of rows and columns will be produced. In that image the background should be separate from the tissue pieces for the pipeline to work properly. 
 
 ## Dependencies
-Bash
 
 Python 3
 
@@ -24,45 +23,73 @@ Python 3
 | Pillow                    |
 | Matplotlib                | 
 
+To avoid dependencies issues, the script is also available through a docker image.
+
+## Build docker image (optional)
+
+After downloading the repository, move inside the repository folder:
+
+```shell
+cd HistologySegment
+```
+
+To build the docker image run the following command:
+
+```shell
+docker build -f docker/Dockerfile -t histologysegment .
+```
+
+This can take several minutes.
+
+## Use docker image
+
+Once the image is built, to execute HistologySegment with docker, interactive session is required.
+
+Because the image is used in a docker container which has its own file system, to use the program with local files, a host data volume needs to be mounted.
+
+
+```shell
+docker run -it -v $PWD:$PWD histologysegment bash
+./segment_hist --help # check the help page
+./segment_hist -k 1000 -m 1000 -l 2 -d 1024 -n 50 -pfxet 0.1 path/to/input/file # run the pipeline
+mv segment_hist_output/ mounted/folder/ # move the output in the local system
+exit # exit the interactive session
+```
+The '-v' option mounts the current working directory and all child folders inside the container to the same path (host_path:container_path).
+
 
 ## Examples
 
 
 Keep segmented image, save patches, produce a thumbnail with marked the selected patches, use a content threshold of 0.1 for patch selection.
     
-```bash
-segment_hist -pfxt 0.1 -i INPUT_FILE
+```
+segment_hist -pfxt 0.1 INPUT_FILE
 
-segment_hist -p -f -x -t 0.1 -i INPUT_FILE
+segment_hist -p -f -x -t 0.1 INPUT_FILE
 ```    
     
 Do not save patches, produce thumbnail, use different than the default values for k and m parameters.
 
-```bash
-segment_hist -xk 10000 -m 1000 -i INPUT_FILE
+```
+segment_hist -xk 10000 -m 1000 INPUT_FILE
 ```
 Do not save patches, produce thumbnail, use a content threshold of 0.1 for patch selection, for background identification use bottom left and top right corners.
     
-```bash
-segment_hist -xt 0.1 -b 0000 -c 0101 -i INPUT_FILE
+```
+segment_hist -xt 0.1 --borders 0000 --corners 0101 INPUT_FILE
 ```
 
 Function in test mode, use different than the default values for k and m parameters.
     
-```bash
-segment_hist test -k 1000 -m 1000 -i INPUT_FILE
+```
+segment_hist --test -k 1000 -m 1000 INPUT_FILE
 ```
 
 Show the help page.
 
-```bash
+```
 segment_hist -h
-```
-
-## Building the docker image
-
-```
-docker build -f docker/Dockerfile -t histologysegment .
 ```
 
 ## References
