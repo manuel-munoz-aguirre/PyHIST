@@ -1,3 +1,6 @@
+*.*~
+#*#
 *.svs
 .vscode
 *.pyc
+test_resources/

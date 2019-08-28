@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 
-#load required libraries
+# load required libraries
+
 import os
 import platform
 import sys
 from argparse import ArgumentParser, RawTextHelpFormatter
 import itertools as it
+import time
 from src import utility_functions, patch_selector
 
-
-def build_parser():
-
-    parser = ArgumentParser(formatter_class=RawTextHelpFormatter,
-    description='''
+description_str = '''
     Segment_hist implements a semi-automatic pipeline to segment tissue slices from
     the background in high resolution whole-slde histopathological images and
     extracts patches of tissue segments from the full resolution image. 
@@ -36,8 +34,9 @@ def build_parser():
     will output the segmented version of the input image with scales indicating 
     the number of rows and columns. In that image the background should be separate 
     from the tissue pieces for the pipeline to work properly. 
-    ''',
-    epilog='''
+    '''
+
+epilog_str = '''
     EXAMPLES
     --------
     
@@ -69,21 +68,28 @@ def build_parser():
     ----------
     Felzenszwalb, P.F., & Huttenlocher, D.P. (2004). Efficient Graph-Based Image 
     Segmentation. International Journal of Computer Vision, 59, 167-181.
-    ''')
+    '''
+
+
+def build_parser(desc, epi):
+
+    parser = ArgumentParser(formatter_class=RawTextHelpFormatter,
+                            description=desc,
+                            epilog=epi)
 
     parser.add_argument('-s', '--sigma', type=float, default=0.5, help='''
     Parameter required by the segmentation algorithm. 
     Used to smooth the input image before segmenting it.
     Default value is 0.5.
     ''')
-    
+
     parser.add_argument('-m', '--min', type=int, default=10000, help='''
     Parameter required by the segmentation algorithm. 
     Minimum segment size enforced by post-processing.
     Larger images require higher values.
     Default value is 10000.
     ''')
-    
+
     parser.add_argument('-k', '--k-const', type=int, default=10000, help='''
     Parameter required by the segmentation algorithm.
     Value for the threshold function. The threshold function controls the 
@@ -92,42 +98,44 @@ def build_parser():
     result in finer segmentation. Larger images require higher values.
     Default value is 10000.
     ''')
-    
+
     parser.add_argument('-l', '--level', type=int, default=1, help='''
     Integer indicating the level of the whole slide image file which will be 
     used to produce the segmentation. It should be greater than 0, beacause 
     level 0 is the full resolution image. Default value is 1, the second 
     largest version of the image.
     ''')
-    
-    parser.add_argument('-p', '--save-patches', action='store_true', 
-                           default=False, help='''
+
+    parser.add_argument('-p', '--save-patches', action='store_true',
+                        default=False, help='''
     Save the produced patches of the full resolution image. By default, 
     segment_hist will not save them.                       
     ''')
-    
+
     parser.add_argument('-t', '--content-threshold', type=float, default=0.5,
-                          help='''
+                        help='''
     Threshold parameter indicating the proportion of a patch content that 
     should not be covered by background in order to be selected. It should
     range between 0 and 1. Default value is 0.5.
                           ''', metavar='CONTENT_THRESHOLD', dest='thres')
-    
+
     parser.add_argument('-d', '--patch-size', type=int, default=512, help='''
     Integer indicating the size of the produced patches. A value of D
     will produce patches of size D x D. Default value is 512.
     ''')
-    
-    parser.add_argument('-n', '--number-of-lines', type=int, default=100, 
+
+    parser.add_argument('-n', '--number-of-lines', type=int, default=100,
                         help='''
     Integer indicating the number of lines from the borders or the corners of
     the segmented image that the algorithm should take into account to define
     background. Default value is 100.
     ''', metavar='NUMBER_OF_LINES', dest='lines')
-    
-    perms = list(set(it.permutations(['0','0','0','0','1','1','1','1'], 4)))
+
+    perms = list(
+        set(it.permutations(['0', '0', '0', '0', '1', '1', '1', '1'], 4)))
     combs = []
-    for perm in perms: combs.append(''.join(perm))
+    for perm in perms:
+        combs.append(''.join(perm))
     parser.add_argument('--borders', type=str, default='1111', help='''
     A four digit string. Each digit represents a border of the image in the 
     following order: left, bottom, right, top. If the digit is equal to 1 and
@@ -138,7 +146,7 @@ def build_parser():
     If this argument is not equal to 0000, then -c should be 0000. 
     Default value is 1111.
     ''', choices=combs)
-    
+
     parser.add_argument('--corners', type=str, default='0000', help='''
     A four digit string. Each digit represents a corner of the image in the 
     following order: top_left, bottom_left, bottom_right, top_right. If the 
@@ -149,59 +157,64 @@ def build_parser():
     identified will be set as background. If this argument is not equal to 0000,
     then -b should be 0000. Default value is 0000.
     ''', choices=combs)
-    
+
     parser.add_argument('-x', '--save-tilecrossed-image', action='store_true',
-                       default=False, help='''
+                        default=False, help='''
     Produce a thumbnail of the original image, in which the selected patches
     are marked with a blue X. By default, segment_hist will not do this.
     ''')
-    
-    parser.add_argument('-f', '--save-mask', action='store_true', default=False, 
+
+    parser.add_argument('-f', '--save-mask', action='store_true', default=False,
                         help='''
     Keep the produced segmented image. By default, segment_hist will delete it.
     ''')
 
-    parser.add_argument('-e', '--save-edges', action='store_true', default=False, 
+    parser.add_argument('-e', '--save-edges', action='store_true', default=False,
                         help='''
     Keep the image produced by the Canny edge detector. 
     By default, segment_hist will delete it.
     ''')
-    
+
     parser.add_argument('svs', type=str, help='''
     The whole slide image input file.
     ''', metavar='input_image')
-    
+
     parser.add_argument('--test', help='''
     Function in test mode
     ''', action='store_true', default=False)
-    
+
     return parser
+
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-def check_compilation():
-    if not os.path.isfile("src/Felzenszwalb_algorithm/segment"): 
 
-        # If Windows, the user must compile the script manually, otherwise 
+def check_compilation():
+    if not os.path.isfile("src/Felzenszwalb_algorithm/segment"):
+
+        # If Windows, the user must compile the script manually, otherwise
         # we attempt to compile it
         if platform.system() == "Windows":
-            eprint("Please compile Felzenszwalb's algorithm before running this script. Exiting.")
+            eprint(
+                "Please compile Felzenszwalb's algorithm before running this script. Exiting.")
             sys.exit(1)
         else:
             print("Compiling Felzenszwalb's algorithm...")
             try:
-                subprocess.check_call(["make"], stdout=subprocess.PIPE, cwd="src/Felzenszwalb_algorithm/")
+                subprocess.check_call(
+                    ["make"], stdout=subprocess.PIPE, cwd="src/Felzenszwalb_algorithm/")
             except:
-                eprint("Compilation of Felzenszwalb's algorithm failed. Please compile it before running this script. Exiting.")
+                eprint(
+                    "Compilation of Felzenszwalb's algorithm failed. Please compile it before running this script. Exiting.")
                 sys.exit(1)
 
 
 if __name__ == "__main__":
-    
+
     # Read arguments
-    parser = build_parser()
-    if len(sys.argv)==1:
+    parser = build_parser(description_str, epilog_str)
+    if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
     args = parser.parse_args()
@@ -209,46 +222,59 @@ if __name__ == "__main__":
     # Check if the segmentation algorithm is compiled
     check_compilation()
 
-    # Check for valid variables 
+    # Check for valid variables
     ## Borders and Corners
-    if (args.borders == '0000' and args.corners == '0000') or (args.borders != '0000' and args.corners != '0000'): eprint("Invalid borders and corners parameters! Exiting."); sys.exit(1)
+    if (args.borders == '0000' and args.corners == '0000') or (args.borders != '0000' and args.corners != '0000'):
+        eprint("Invalid borders and corners parameters! Exiting.")
+        sys.exit(1)
 
-    ##Content_threshold
-    if args.thres > 1 or args.thres < 0: eprint("CONTENT_THRESHOLD should be a float number between 0 and 1! Exiting."); sys.exit(1) 
+    # Content_threshold
+    if args.thres > 1 or args.thres < 0:
+        eprint("CONTENT_THRESHOLD should be a float number between 0 and 1! Exiting.")
+        sys.exit(1)
 
     sample_id = args.svs.split('/')[-1]
     sample_id = sample_id.split('.')[0]
 
-    # Create output folder 
+    # Create output folder
     output = 'segment_hist_output/'
     if not os.path.exists(output):
         os.makedirs(output)
 
     # Produce edge image
-    print ('Producing edge image...')
-    utility_functions.produce_edges(args.svs, output + "edges_" + sample_id  + ".ppm", args.level)
+    print('Producing edge image...')
+    ts = time.time()
+    utility_functions.produce_edges(
+        args.svs, output + "edges_" + sample_id + ".ppm", args.level)
+    te = time.time()
+    print(ts-te)
 
     # Run the segmentation algorithm
     print('Producing segmented image...')
+    ts = time.time()
     utility_functions.produce_segmented_image(sample_id, output, args.sigma,
                                               args.k_const, args.min)
+    te = time.time()
+    print(ts-te)
+
     # test mode
     if (args.test):
         print('Producing test image...')
         utility_functions.produce_test_image(sample_id, output)
         os.remove(output + "edges_" + sample_id + ".ppm")
         os.remove(output + "segmented_" + sample_id + ".ppm")
-        
+
         print('ALL DONE!')
         sys.exit(0)
 
-
     # Produce and select tiles
-    patch_selector.run(sample_id, args.thres, args.patch_size, args.lines, 
-                        args.borders, args.corners, args.save_tilecrossed_image, 
-                        args.save_patches, args.svs, args.level, output)
+    patch_selector.run(sample_id, args.thres, args.patch_size, args.lines,
+                       args.borders, args.corners, args.save_tilecrossed_image,
+                       args.save_patches, args.svs, args.level, output)
 
     # Delete segmented and edge images
-    if (not args.save_mask): os.remove(output + "segmented_" + sample_id + ".ppm")
-    if (not args.save_edges): os.remove(output + "edges_" + sample_id + ".ppm")
+    if (not args.save_mask):
+        os.remove(output + "segmented_" + sample_id + ".ppm")
+    if (not args.save_edges):
+        os.remove(output + "edges_" + sample_id + ".ppm")
     print('ALL DONE!')
