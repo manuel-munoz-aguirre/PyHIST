@@ -101,7 +101,7 @@ def build_parser(desc, epi):
 
     parser.add_argument('-l', '--level', type=int, default=1, help='''
     Integer indicating the level of the whole slide image file which will be 
-    used to produce the segmentation. It should be greater than 0, beacause 
+    used to produce the segmentation. It should be greater than 0, because 
     level 0 is the full resolution image. Default value is 1, the second 
     largest version of the image.
     ''')
@@ -140,7 +140,7 @@ def build_parser(desc, epi):
     A four digit string. Each digit represents a border of the image in the 
     following order: left, bottom, right, top. If the digit is equal to 1 and
     not 0, then the corresponding border will be taken into account to define
-    background. For instane, with -b 1010 the algorithm will look at the left
+    background. For instance, with -b 1010 the algorithm will look at the left
     and right borders of the segmented image, in a window of width defined by
     the -n argument, and every segment identified will be set as background. 
     If this argument is not equal to 0000, then -c should be 0000. 
@@ -186,8 +186,8 @@ def build_parser(desc, epi):
     return parser
 
 
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+# def print(*args, **kwargs):
+#     print(*args, file=sys.stderr, **kwargs)
 
 
 def check_compilation():
@@ -196,7 +196,7 @@ def check_compilation():
         # If Windows, the user must compile the script manually, otherwise
         # we attempt to compile it
         if platform.system() == "Windows":
-            eprint(
+            print(
                 "Please compile Felzenszwalb's algorithm before running this script. Exiting.")
             sys.exit(1)
         else:
@@ -205,7 +205,7 @@ def check_compilation():
                 subprocess.check_call(
                     ["make"], stdout=subprocess.PIPE, cwd="src/Felzenszwalb_algorithm/")
             except:
-                eprint(
+                print(
                     "Compilation of Felzenszwalb's algorithm failed. Please compile it before running this script. Exiting.")
                 sys.exit(1)
 
@@ -225,12 +225,12 @@ if __name__ == "__main__":
     # Check for valid variables
     ## Borders and Corners
     if (args.borders == '0000' and args.corners == '0000') or (args.borders != '0000' and args.corners != '0000'):
-        eprint("Invalid borders and corners parameters! Exiting.")
+        print("Invalid borders and corners parameters! Exiting.")
         sys.exit(1)
 
     # Content_threshold
     if args.thres > 1 or args.thres < 0:
-        eprint("CONTENT_THRESHOLD should be a float number between 0 and 1! Exiting.")
+        print("CONTENT_THRESHOLD should be a float number between 0 and 1! Exiting.")
         sys.exit(1)
 
     sample_id = args.svs.split('/')[-1]
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     utility_functions.produce_edges(
         args.svs, output + "edges_" + sample_id + ".ppm", args.level)
     te = time.time()
-    print(ts-te)
+    print(te-ts)
 
     # Run the segmentation algorithm
     print('Producing segmented image...')
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     utility_functions.produce_segmented_image(sample_id, output, args.sigma,
                                               args.k_const, args.min)
     te = time.time()
-    print(ts-te)
+    print(te-ts)
 
     # test mode
     if (args.test):
@@ -267,14 +267,17 @@ if __name__ == "__main__":
         print('ALL DONE!')
         sys.exit(0)
 
-    # Produce and select tiles
-    patch_selector.run(sample_id, args.thres, args.patch_size, args.lines,
-                       args.borders, args.corners, args.save_tilecrossed_image,
-                       args.save_patches, args.svs, args.level, output)
+    # # Produce and select tiles
+    # ts = time.time()
+    # patch_selector.run(sample_id, args.thres, args.patch_size, args.lines,
+    #                    args.borders, args.corners, args.save_tilecrossed_image,
+    #                    args.save_patches, args.svs, args.level, output)
+    # te = time.time()
+    # print(te-ts)
 
-    # Delete segmented and edge images
-    if (not args.save_mask):
-        os.remove(output + "segmented_" + sample_id + ".ppm")
-    if (not args.save_edges):
-        os.remove(output + "edges_" + sample_id + ".ppm")
-    print('ALL DONE!')
+    # # Delete segmented and edge images
+    # if (not args.save_mask):
+    #     os.remove(output + "segmented_" + sample_id + ".ppm")
+    # if (not args.save_edges):
+    #     os.remove(output + "edges_" + sample_id + ".ppm")
+    # print('ALL DONE!')

@@ -1,6 +1,6 @@
 # HistologySegment
 
-## Descritpion
+## Description
 
 A semi-automatic pipeline to segment tissue slices from the background in high resolution whole-slde histopathological images. Furthermore, it extracts patches of tissue segments from the full resolution image. 
 
@@ -23,7 +23,7 @@ Python 3
 | Pillow                    |
 | Matplotlib                | 
 
-To avoid dependencies issues, the script is also available through a docker image.
+To avoid dependency issues, the script is also available through a docker image.
 
 ## Build docker image (optional)
 
@@ -39,7 +39,7 @@ To build the docker image run the following command:
 docker build -f docker/Dockerfile -t histologysegment .
 ```
 
-This can take several minutes.
+This will take several minutes.
 
 ## Use docker image
 
@@ -49,7 +49,7 @@ Because the image is used in a docker container which has its own file system, t
 
 
 ```shell
-docker run -it -v $PWD:$PWD histologysegment bash
+docker run -u USERID:GROUPID -it -v $PWD:$PWD histologysegment bash
 ./segment_hist --help # check the help page
 ./segment_hist -k 1000 -m 1000 -l 2 -d 1024 -n 50 -pfxet 0.1 path/to/input/file # run the pipeline
 mv segment_hist_output/ mounted/folder/ # move the output in the local system
