@@ -1,14 +1,23 @@
 import pandas as pd
 import numpy as np
 import openslide
+from openslide import deepzoom
 import cv2
-from PIL import Image
+from PIL import Image, ImageDraw
 import os
 import math
+import sys
+import time
+from src import utility_functions
 
 
-def run(sample_id, threshold, patch_size, lines, borders, corners,
-        save_tilecrossed_images, save_patches, svs_fname, level, out_folder):
+def run(sample_id, threshold,
+        patch_size, lines,
+        borders, corners,
+        save_tilecrossed_images, save_patches,
+        svs_fname,
+        output_downsample, mask_downsample,
+        out_folder, verbose):
     '''
     Chops the full resolution image to patches of a given size.
     Saves only those patches, whose 'tissue content' exceeds a threshold.
@@ -16,14 +25,13 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
     Produces a tsv file containing patch metadata.
     '''
 
-    # Function that classifies a tile to be selected or not
     def selector(mask_patch, thres, bg_color):
         '''
         classifies a tile to be selected or not
         '''
         bg = mask_patch == bg_color
-        bg = bg.view(dtype=np.int8)
-        #bg = np.mean(bg, axis=2)
+#        bg = bg.view(dtype=np.int8)
+
         bg_proportion = np.sum(bg) / bg.size
         if bg_proportion <= (1 - thres):
             output = 1
@@ -32,12 +40,10 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
 
         return output
 
-    # Function that identifies the background color
     def bg_color_identifier(mask, lines, borders, corners):
         '''
         Identifies the background color
         '''
-        print("Identifing background...")
         bord = np.empty((1, 3))
 
         if borders != '0000':
@@ -92,134 +98,296 @@ def run(sample_id, threshold, patch_size, lines, borders, corners,
 
         return bg_color, bord_unique
 
-    def count_n_tiles(dims, patch_size):
-        '''
-        Counts the number of tiles the image is going to split.
-        '''
-        print("Counting the number of tiles...")
-        width = dims[0] // patch_size
-        if dims[0] % patch_size > 0:
-            width += 1
-        height = dims[1] // patch_size
-        if dims[1] % patch_size > 0:
-            height += 1
-        n_tiles = width * height
-        return n_tiles, width, height
+    # def count_n_tiles(dims, patch_size):
+    #     '''
+    #     Counts the number of tiles the image is going to split.
+    #     '''
+    #     width = dims[0] // patch_size
+    #     if dims[0] % patch_size > 0:
+    #         width += 1
+    #     height = dims[1] // patch_size
+    #     if dims[1] % patch_size > 0:
+    #         height += 1
+    #     n_tiles = width * height
+    #     return n_tiles, width, height
 
-    patch_results = []
+    # DEBUG VARS
+    # TODO: Add tilecross_donwsample to arguments and
+    # save_foregroundonly
+    svs_fname = "test_resources/GTEX-1117F-0125.svs"
+    out_folder = "output/GTEX-1117F-0125/"
+    sample_id = "GTEX-1117F-0125"
+    lines = 10
+    borders = '1111'
+    corners = '0000'
+    save_patches = True
+    patch_size = 512
+    output_downsample = 16
+    mask_downsample = 32
+    verbose = True
+    tilecross_downsample = 32
+    threshold = 0.1
+    save_tilecrossed_images = True
+    save_foregroundonly = False
 
-    # Open mask image
-    print("Reading mask...")
+    # Open mask image as BGR
+    print("\n== Step 3: Selecting tiles ==")
     mask = cv2.imread(out_folder + "segmented_" + sample_id + ".ppm")
 
     # Identify background colors
     bg_color, bord = bg_color_identifier(mask, lines, borders, corners)
 
+    # If we detect more than one background color, then we replace them all
+    # with the first detected background color
     if bord.shape[0] > 1:
         for i in range(1, bord.shape[0]):
             mask[np.where((mask == bord[i]).all(axis=2))] = bg_color
 
-    # Open svs file
-    print("Reading svs file...")
+    # Convert to PIL
+    mask = Image.fromarray(mask)
+
+    # Open SVS file
     svs = openslide.OpenSlide(svs_fname)
     image_dims = svs.dimensions
-    print(image_dims)
 
-    # Count the number of tiles
-    n_tiles, *n_tiles_ax = count_n_tiles(image_dims, patch_size)
-    print(str(n_tiles) + " tiles")
-    digits = len(str(n_tiles)) + 1
-
-    # calc patch size in mask
-    mask_patch_size = int(np.ceil([patch_size / svs.level_downsamples[level]]))
-
-    # create folders for the patches
+    # Create folder for the patches
     if save_patches:
         out_tiles = out_folder + sample_id + "_tiles/"
         if not os.path.exists(out_tiles):
             os.makedirs(out_tiles)
 
-    preds = [None] * n_tiles
-    # Categorize tiles using the selector function
-    print("Producing patches...")
+    # # Count the number of tiles
+    # n_tiles, *n_tiles_ax = count_n_tiles(image_dims, patch_size)
+    # print(str(n_tiles) + " tiles")
+    # digits = len(str(n_tiles)) + 1
 
-    rows, columns, i = 0, 0, 0
-    mask_rows, mask_columns = 0, 0
+    # Initialize deep zoom generator
+    dzg = deepzoom.DeepZoomGenerator(svs,
+                                     tile_size=patch_size,
+                                     overlap=0)
+
+    # Find the deep zoom level corresponding to the
+    # requested downsampling factor
+    dzg_levels = [2**i for i in range(0, dzg.level_count)][::-1]
+    dzg_selectedlevel_idx = dzg_levels.index(output_downsample)
+    dzg_selectedlevel_dims = dzg.level_dimensions[dzg_selectedlevel_idx]
+    dzg_selectedlevel_maxtilecoords = dzg.level_tiles[dzg_selectedlevel_idx]
+    dzg_real_downscaling = np.divide(svs.dimensions, dzg.level_dimensions)[
+        :, 0][dzg_selectedlevel_idx]
+    n_tiles = np.prod(dzg_selectedlevel_maxtilecoords)
+    digits_padding = int(math.log10(n_tiles)) + 1
+
+    # Calculate patch size in the mask
+    mask_patch_size = int(
+        np.ceil(patch_size * (output_downsample/mask_downsample)))
+
+    # Deep zoom generator for the mask
+    dzgmask = deepzoom.DeepZoomGenerator(openslide.ImageSlide(mask),
+                                         tile_size=mask_patch_size,
+                                         overlap=0)
+    dzgmask_dims = dzgmask.level_dimensions[dzgmask.level_count - 1]
+    dzgmask_maxtilecoords = dzgmask.level_tiles[dzgmask.level_count - 1]
+    dzgmask_ntiles = np.prod(dzgmask_maxtilecoords)
+
+    # If a tile-crossed image is needed, generate a downsampled version
+    # of the original one
+    if save_tilecrossed_images:
+        tilecrossed_img = utility_functions.downsample_image(
+            svs, tilecross_downsample, mode="PIL")[0]
+
+        # Calculate patch size in the mask
+        tilecross_patchsize = int(np.ceil(patch_size *
+                                          (output_downsample/tilecross_downsample)))
+        draw = ImageDraw.Draw(tilecrossed_img)
+
+        # Counters for iterating through the image
+        tc_w = 0
+        tc_h = 0
+
+    if verbose:
+        print("Output image information: ")
+        print("Requested " + str(output_downsample) +
+              "x downsampling for output.")
+        print("Properties of selected deep zoom level:")
+        print("-Real downscaling factor: " + str(dzg_real_downscaling))
+        print("-Pixel dimensions: " + str(dzg_selectedlevel_dims))
+        print("-Selected patch size: " + str(patch_size))
+        print("-Max tile coordinates: " + str(dzg_selectedlevel_maxtilecoords))
+        print("-Number of tiles: " + str(n_tiles))
+
+        print("\nMask information: ")
+        print("-Mask downscaling factor:" + str(mask_downsample))
+        print("-Pixel dimensions: " + str(dzgmask_dims))
+        print("-Calculated patch size: " + str(mask_patch_size))
+        print("-Max tile coordinates: " + str(dzgmask_maxtilecoords))
+        print("-Number of tiles: " + str(dzgmask_ntiles))
+
+    # Counters
+    preds = [None] * n_tiles
+    row, col, i = 0, 0, 0
     tile_names = []
     tile_dims = []
 
-    if save_tilecrossed_images:
-        blank_canvas = Image.new(
-            "RGB",
-            (math.trunc(image_dims[0] * .05), math.trunc(image_dims[1] * .05)),
-            "white")
-        w = 0
-        h = 0
+    # TODO: pad tiles (or drop?)
+    # Categorize tiles using the selector function
+    while row < dzg_selectedlevel_maxtilecoords[1]:
 
-    while (columns, rows) != (0, image_dims[1]):
-        width = min(patch_size, (image_dims[0] - columns))
-        height = min(patch_size, (image_dims[1] - rows))
-        # Extract tile from the svs file
-        tile = svs.read_region((columns, rows), 0, (width, height))
+        print("===", str(col), str(row), "===")
 
-        tile_names.append(sample_id + "_" + str((i + 1)).rjust(digits, '0'))
-        tile_dims.append(str(width) + "x" + str(height))
+        # Extract the tile from the mask
+        mask_tile = dzgmask.get_tile(dzgmask.level_count - 1, (col, row))
 
-        # Extract the corresponing tile from the mask
-        mask_width = min(mask_patch_size, (mask.shape[1] - mask_columns))
-        mask_height = min(mask_patch_size, (mask.shape[0] - mask_rows))
-        mask_patch = mask[mask_rows:(mask_rows + mask_height), mask_columns:(
-            mask_columns + mask_width), :]
+        # Tile converted to BGR
+        mask_tile = np.array(mask_tile)
 
-        # make te prediction
-        preds[i] = selector(mask_patch, threshold, bg_color)
+        # Predict if the tile will be kept (1) or not (0)
+        preds[i] = selector(mask_tile, threshold, bg_color)
 
-        # save patches with tissue content
-        if save_patches:
-            if preds[i] == 1:
-                p = np.array(tile.convert('RGB'))
-                p = p[..., ::-1]
-                cv2.imwrite((out_tiles + tile_names[i] + ".jpg"), p)
+        # Save patches if requested
+        if (save_patches and save_foregroundonly and preds[i] == 1) or (save_patches and not save_foregroundonly):
+            tile = dzg.get_tile(dzg_selectedlevel_idx, (col, row))
 
-        # write tilecrossed image:
+            # Prepare metadata
+            tile_names.append(sample_id + "_" + str((i)
+                                                    ).rjust(digits_padding, '0'))
+            tile_dims.append(str(tile.size[0]) + "," + str(tile.size[1]))
+
+            # Save tile
+            tile.save(out_tiles + tile_names[i] + ".jpg")
+
+        # Draw cross over corresponding patch section
+        # on tilecrossed image
         if save_tilecrossed_images:
+            start_w = col * (tilecross_patchsize + 1)
+            start_h = row * (tilecross_patchsize + 1)
 
-            p = np.array(tile.convert('RGB'))
-            p = cv2.resize(p,
-                           (math.trunc(width * .05), math.trunc(height * .05)),
-                           interpolation=cv2.INTER_AREA)
+            print(start_w, start_h)
 
-            # If the patch is selected, we draw a cross over it
-            if preds[i] == 1:
-                cv2.line(p, (0, 0), (p.shape[0] - 1, p.shape[1] - 1),
-                         (0, 0, 255), 2)
-                cv2.line(p, (0, p.shape[1] - 1), (p.shape[0] - 1, 0),
-                         (0, 0, 255), 2)
+            # If we reach the edge of the image, we only
+            # can draw until the edge pixel
+            print("target pos: ", start_w + tilecross_patchsize,
+                  "/", tilecrossed_img.size[0])
 
-            # Write to the canvas and change coordinates
-            blank_canvas.paste(Image.fromarray(p), (w, h))
-            w += p.shape[1]
-            if i > 0 and i % n_tiles_ax[0] == 0:
-                w = 0
-                h = h + p.shape[0]
+            if (start_w + tilecross_patchsize) >= tilecrossed_img.size[0]:
+                cl_w = tilecrossed_img.size[0] - start_w
+                print("row jump: " + str(cl_w))
+            else:
+                cl_w = tilecross_patchsize
 
-        # move coordinates
+            if (start_h + tilecross_patchsize) >= tilecrossed_img.size[1]:
+                cl_h = tilecrossed_img.size[1] - start_h
+            else:
+                cl_h = tilecross_patchsize
+
+            # From top left to bottom right
+            draw.line([(start_w, start_h),
+                       (start_w + cl_w, start_h + cl_h)],
+                      fill=(255, 0, 0))
+
+            # From bottom left to top right
+            draw.line([(start_w, start_h + cl_h),
+                       (start_w + cl_w, start_h)],
+                      fill=(255, 0, 0))
+
+            # Jump to the next tilecross tile
+            tc_w = tc_w + tilecross_patchsize + 1
+
+        # Jump to the next column tile
+        col += 1
+
+        # If we reach the right edge of the image, jump to the next row
+        if col == dzg_selectedlevel_maxtilecoords[0]:
+            col = 0
+            row += 1
+
+            print("-->" + str((row, col)) + "/" +
+                  str(dzg_selectedlevel_maxtilecoords))
+
+            if save_tilecrossed_images:
+                tc_w = 0
+                tc_h = tc_h + tilecross_patchsize + 1
+
+        # Increase counter for metadata
         i += 1
-        columns += width
-        if columns == image_dims[0]:
-            columns = 0
-            rows += height
 
-        mask_columns += mask_width
-        if mask_columns == mask.shape[1]:
-            mask_columns = 0
-            mask_rows += mask_height
-
-    # Save tilecrossed image
+    # Saving tilecrossed image
     if save_tilecrossed_images:
-        blank_canvas.save(out_folder + "tilecrossed_" + sample_id + ".jpg")
+        tilecrossed_img.save(out_folder + "/tilecrossed_" + sample_id + ".png")
+
+    # if save_tilecrossed_images:
+    #     blank_canvas = Image.new(
+    #         "RGB",
+    #         (math.trunc(image_dims[0] * .05), math.trunc(image_dims[1] * .05)),
+    #         "white")
+    #     w = 0
+    #     h = 0
+
+    # while (columns, rows) != (0, image_dims[1]):
+    #     width = min(patch_size, (image_dims[0] - columns))
+    #     height = min(patch_size, (image_dims[1] - rows))
+
+    #     # Extract tile from the svs file
+    #     tile = svs.read_region((columns, rows), 0, (width, height))
+
+    #     tile_names.append(sample_id + "_" + str((i + 1)).rjust(digits, '0'))
+    #     tile_dims.append(str(width) + "x" + str(height))
+
+    #     # Extract the corresponing tile from the mask
+    #     mask_width = min(mask_patch_size, (mask.shape[1] - mask_columns))
+    #     mask_height = min(mask_patch_size, (mask.shape[0] - mask_rows))
+    #     mask_patch = mask[mask_rows:(mask_rows + mask_height), mask_columns:(
+    #         mask_columns + mask_width), :]
+
+    #     # make te prediction
+    #     preds[i] = selector(mask_patch, threshold, bg_color)
+
+    #     # save patches with tissue content
+    #     if save_patches:
+    #         if preds[i] == 1:
+    #             p = np.array(tile.convert('RGB'))
+    #             p = p[..., ::-1]
+    #             cv2.imwrite((out_tiles + tile_names[i] + ".jpg"), p)
+
+    #     # write tilecrossed image:
+    #     if save_tilecrossed_images:
+
+    #         p = np.array(tile.convert('RGB'))
+    #         p = cv2.resize(p,
+    #                        (math.trunc(width * .05), math.trunc(height * .05)),
+    #                        interpolation=cv2.INTER_AREA)
+
+    #         # If the patch is selected, we draw a cross over it
+    #         if preds[i] == 1:
+    #             cv2.line(p, (0, 0), (p.shape[0] - 1, p.shape[1] - 1),
+    #                      (0, 0, 255), 2)
+    #             cv2.line(p, (0, p.shape[1] - 1), (p.shape[0] - 1, 0),
+    #                      (0, 0, 255), 2)
+
+    #         # Write to the canvas and change coordinates
+    #         blank_canvas.paste(Image.fromarray(p), (w, h))
+    #         w += p.shape[1]
+    #         if i > 0 and i % n_tiles_ax[0] == 0:
+    #             w = 0
+    #             h = h + p.shape[0]
+
+    #     # move coordinates
+    #     i += 1
+    #     columns += width
+    #     if columns == image_dims[0]:
+    #         columns = 0
+    #         rows += height
+
+    #     mask_columns += mask_width
+    #     if mask_columns == mask.shape[1]:
+    #         mask_columns = 0
+    #         mask_rows += mask_height
+
+    # # Save tilecrossed image
+    # if save_tilecrossed_images:
+    #     blank_canvas.save(out_folder + "tilecrossed_" + sample_id + ".jpg")
 
     # save preds of each image
+    patch_results = []
     patch_results.extend(list(zip(tile_names, tile_dims, preds)))
 
     # save results in a tsv file

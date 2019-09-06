@@ -5,3 +5,4 @@
 *.pyc
 __pycache__
 test_resources/
+output/
