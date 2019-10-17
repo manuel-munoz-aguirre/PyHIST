@@ -342,7 +342,9 @@ def main():
 
     # test mode
     if args.test_mode:
-        utility_functions.produce_test_image(sample_id, img_outpath)
+        utility_functions.produce_test_image(sample_id,
+                                             img_outpath,
+                                             args)
         sys.exit(0)
 
     # Generate image tiles

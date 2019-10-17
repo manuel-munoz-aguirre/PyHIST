@@ -100,21 +100,33 @@ def produce_edges(in_img, out_img, downsampling_factor, verbose):
         print("Elapsed time: " + str(te - ts))
 
 
-def produce_test_image(image, out_folder):
+def produce_test_image(image, out_folder, args):
     '''
-    Produces a PNG version of the segmented PPM image using matplotlib.
-    FIX THIS SO THAT THE GRID MATCHES THE OUTPUT_DOWNSAMPLE SIZE
+    Produces a PNG version of the segmented PPM image overlaying the
+    grid with the selected patch size at the output downscale resolution.
     '''
-    print("Producing test image")
-#    warnings.filterwarnings("ignore")
+
+    print("Producing test image...")
+
+    # Get information about arguments and image
+    output_downsample = args.output_downsample
+    patch_size = args.patch_size
+    svs = openslide.OpenSlide(args.svs)
+    image_dims = svs.dimensions  # (x, y)
 
     # Since we read an numpy array, we need to change BGR -> RGB
-    # when plotting
-    mask = cv2.imread(out_folder + "segmented_" + image + ".ppm")
-    plt.imshow(mask[..., ::-1])
-    plt.savefig(out_folder + "test_" + image + ".png")
+    mask = cv2.imread(out_folder + "segmented_" + image + ".ppm")  # (y, x)
+    resized_mask = cv2.resize(mask, (image_dims[0]//output_downsample,
+                                     image_dims[1]//output_downsample))
 
-#    warnings.filterwarnings("default")
+    # Draw a grid over the image (does thickness need to be 2?)
+    x_shift, y_shift = patch_size, patch_size
+    gcol = [255, 0, 0]
+    resized_mask[:, ::y_shift, :] = gcol
+    resized_mask[::x_shift, :, :] = gcol
+
+    # The mask should have the scaling factor of the requested output image
+    cv2.imwrite(out_folder + "test_" + image + ".png", resized_mask)
 
 
 def produce_segmented_image(sample_id, out_folder, sigma, k_const,

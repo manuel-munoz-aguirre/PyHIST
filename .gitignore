@@ -1,8 +1,11 @@
 *.*~
 #*#
+.#*#
 *.svs
 .vscode
 *.pyc
 __pycache__
 test_resources/
 output/
+*.py#
+*/.#*

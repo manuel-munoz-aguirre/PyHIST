@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
+from PIL import Image, ImageDraw
 import openslide
 from openslide import deepzoom
 import cv2
-from PIL import Image, ImageDraw
 import os
 import math
 import sys
@@ -121,7 +121,7 @@ def run(sample_id, threshold,
     borders = '1111'
     corners = '0000'
     save_patches = True
-    patch_size = 512
+    patch_size = 256
     output_downsample = 16
     mask_downsample = 32
     verbose = True
@@ -134,7 +134,7 @@ def run(sample_id, threshold,
     print("\n== Step 3: Selecting tiles ==")
     mask = cv2.imread(out_folder + "segmented_" + sample_id + ".ppm")
 
-    # Identify background colors
+    # Identify background colors from the mask
     bg_color, bord = bg_color_identifier(mask, lines, borders, corners)
 
     # If we detect more than one background color, then we replace them all
@@ -192,12 +192,13 @@ def run(sample_id, threshold,
     # If a tile-crossed image is needed, generate a downsampled version
     # of the original one
     if save_tilecrossed_images:
-        tilecrossed_img = utility_functions.downsample_image(
-            svs, tilecross_downsample, mode="PIL")[0]
+        tilecrossed_img = utility_functions.downsample_image(svs,
+                                                             tilecross_downsample,
+                                                             mode="PIL")[0]
 
         # Calculate patch size in the mask
-        tilecross_patchsize = int(np.ceil(patch_size *
-                                          (output_downsample/tilecross_downsample)))
+        tilecross_patchsize = int(
+            np.ceil(patch_size * (output_downsample/tilecross_downsample)))
         draw = ImageDraw.Draw(tilecrossed_img)
 
         # Counters for iterating through the image
@@ -205,6 +206,7 @@ def run(sample_id, threshold,
         tc_h = 0
 
     if verbose:
+        print("Original image dimensions:", str(image_dims))
         print("Output image information: ")
         print("Requested " + str(output_downsample) +
               "x downsampling for output.")
@@ -216,7 +218,7 @@ def run(sample_id, threshold,
         print("-Number of tiles: " + str(n_tiles))
 
         print("\nMask information: ")
-        print("-Mask downscaling factor:" + str(mask_downsample))
+        print("-Mask downscaling factor: " + str(mask_downsample))
         print("-Pixel dimensions: " + str(dzgmask_dims))
         print("-Calculated patch size: " + str(mask_patch_size))
         print("-Max tile coordinates: " + str(dzgmask_maxtilecoords))
@@ -248,8 +250,8 @@ def run(sample_id, threshold,
             tile = dzg.get_tile(dzg_selectedlevel_idx, (col, row))
 
             # Prepare metadata
-            tile_names.append(sample_id + "_" + str((i)
-                                                    ).rjust(digits_padding, '0'))
+            tile_names.append(sample_id + "_" +
+                              str((i)).rjust(digits_padding, '0'))
             tile_dims.append(str(tile.size[0]) + "," + str(tile.size[1]))
 
             # Save tile
@@ -263,8 +265,7 @@ def run(sample_id, threshold,
 
             print(start_w, start_h)
 
-            # If we reach the edge of the image, we only
-            # can draw until the edge pixel
+            # If we reach the edge of the image, we only can draw until the edge pixel
             print("target pos: ", start_w + tilecross_patchsize,
                   "/", tilecrossed_img.size[0])
 
@@ -279,15 +280,18 @@ def run(sample_id, threshold,
             else:
                 cl_h = tilecross_patchsize
 
-            # From top left to bottom right
-            draw.line([(start_w, start_h),
-                       (start_w + cl_w, start_h + cl_h)],
-                      fill=(255, 0, 0))
+            # Draw the cross only if the tile has to be kept
+            if preds[i] == 1:
 
-            # From bottom left to top right
-            draw.line([(start_w, start_h + cl_h),
-                       (start_w + cl_w, start_h)],
-                      fill=(255, 0, 0))
+                # From top left to bottom right
+                draw.line([(start_w, start_h),
+                           (start_w + cl_w, start_h + cl_h)],
+                          fill=(255, 0, 0))
+
+                # From bottom left to top right
+                draw.line([(start_w, start_h + cl_h),
+                           (start_w + cl_w, start_h)],
+                          fill=(255, 0, 0))
 
             # Jump to the next tilecross tile
             tc_w = tc_w + tilecross_patchsize + 1
