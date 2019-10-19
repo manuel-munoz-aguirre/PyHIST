@@ -120,10 +120,10 @@ def run(sample_id, threshold,
     lines = 10
     borders = '1111'
     corners = '0000'
-    save_patches = True
-    patch_size = 256
+    save_patches = False
+    patch_size = 64
     output_downsample = 16
-    mask_downsample = 32
+    mask_downsample = 16
     verbose = True
     tilecross_downsample = 32
     threshold = 0.1
@@ -178,8 +178,7 @@ def run(sample_id, threshold,
     digits_padding = int(math.log10(n_tiles)) + 1
 
     # Calculate patch size in the mask
-    mask_patch_size = int(
-        np.ceil(patch_size * (output_downsample/mask_downsample)))
+    mask_patch_size = int(np.ceil(patch_size * (output_downsample/mask_downsample)))
 
     # Deep zoom generator for the mask
     dzgmask = deepzoom.DeepZoomGenerator(openslide.ImageSlide(mask),
@@ -192,13 +191,21 @@ def run(sample_id, threshold,
     # If a tile-crossed image is needed, generate a downsampled version
     # of the original one
     if save_tilecrossed_images:
-        tilecrossed_img = utility_functions.downsample_image(svs,
-                                                             tilecross_downsample,
-                                                             mode="PIL")[0]
+        tilecrossed_img = utility_functions.downsample_image(svs, tilecross_downsample, mode="numpy")[0]
 
         # Calculate patch size in the mask
-        tilecross_patchsize = int(
-            np.ceil(patch_size * (output_downsample/tilecross_downsample)))
+        tilecross_patchsize = int(np.ceil(patch_size * (output_downsample/tilecross_downsample)))
+
+        # Draw the grid at the scaled patchsize
+        x_shift, y_shift = tilecross_patchsize, tilecross_patchsize
+        gcol = [255, 0, 0]
+        tilecrossed_img[:, ::y_shift, :] = gcol
+        tilecrossed_img[::x_shift, :, :] = gcol
+
+        # Convert to PIL image
+        tilecrossed_img = Image.fromarray(tilecrossed_img, mode="RGB")
+        
+        # Create object to draw the crosses
         draw = ImageDraw.Draw(tilecrossed_img)
 
         # Counters for iterating through the image
@@ -260,8 +267,8 @@ def run(sample_id, threshold,
         # Draw cross over corresponding patch section
         # on tilecrossed image
         if save_tilecrossed_images:
-            start_w = col * (tilecross_patchsize + 1)
-            start_h = row * (tilecross_patchsize + 1)
+            start_w = col * (tilecross_patchsize)
+            start_h = row * (tilecross_patchsize)
 
             print(start_w, start_h)
 
