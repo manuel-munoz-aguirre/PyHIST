@@ -6,7 +6,6 @@ from openslide import deepzoom
 import cv2
 import os
 import math
-import sys
 import time
 from src import utility_functions
 
@@ -325,87 +324,11 @@ def run(sample_id, threshold,
     if save_tilecrossed_images:
         tilecrossed_img.save(out_folder + "/tilecrossed_" + sample_id + ".png")
 
-    # if save_tilecrossed_images:
-    #     blank_canvas = Image.new(
-    #         "RGB",
-    #         (math.trunc(image_dims[0] * .05), math.trunc(image_dims[1] * .05)),
-    #         "white")
-    #     w = 0
-    #     h = 0
-
-    # while (columns, rows) != (0, image_dims[1]):
-    #     width = min(patch_size, (image_dims[0] - columns))
-    #     height = min(patch_size, (image_dims[1] - rows))
-
-    #     # Extract tile from the svs file
-    #     tile = svs.read_region((columns, rows), 0, (width, height))
-
-    #     tile_names.append(sample_id + "_" + str((i + 1)).rjust(digits, '0'))
-    #     tile_dims.append(str(width) + "x" + str(height))
-
-    #     # Extract the corresponing tile from the mask
-    #     mask_width = min(mask_patch_size, (mask.shape[1] - mask_columns))
-    #     mask_height = min(mask_patch_size, (mask.shape[0] - mask_rows))
-    #     mask_patch = mask[mask_rows:(mask_rows + mask_height), mask_columns:(
-    #         mask_columns + mask_width), :]
-
-    #     # make te prediction
-    #     preds[i] = selector(mask_patch, threshold, bg_color)
-
-    #     # save patches with tissue content
-    #     if save_patches:
-    #         if preds[i] == 1:
-    #             p = np.array(tile.convert('RGB'))
-    #             p = p[..., ::-1]
-    #             cv2.imwrite((out_tiles + tile_names[i] + ".jpg"), p)
-
-    #     # write tilecrossed image:
-    #     if save_tilecrossed_images:
-
-    #         p = np.array(tile.convert('RGB'))
-    #         p = cv2.resize(p,
-    #                        (math.trunc(width * .05), math.trunc(height * .05)),
-    #                        interpolation=cv2.INTER_AREA)
-
-    #         # If the patch is selected, we draw a cross over it
-    #         if preds[i] == 1:
-    #             cv2.line(p, (0, 0), (p.shape[0] - 1, p.shape[1] - 1),
-    #                      (0, 0, 255), 2)
-    #             cv2.line(p, (0, p.shape[1] - 1), (p.shape[0] - 1, 0),
-    #                      (0, 0, 255), 2)
-
-    #         # Write to the canvas and change coordinates
-    #         blank_canvas.paste(Image.fromarray(p), (w, h))
-    #         w += p.shape[1]
-    #         if i > 0 and i % n_tiles_ax[0] == 0:
-    #             w = 0
-    #             h = h + p.shape[0]
-
-    #     # move coordinates
-    #     i += 1
-    #     columns += width
-    #     if columns == image_dims[0]:
-    #         columns = 0
-    #         rows += height
-
-    #     mask_columns += mask_width
-    #     if mask_columns == mask.shape[1]:
-    #         mask_columns = 0
-    #         mask_rows += mask_height
-
-    # # Save tilecrossed image
-    # if save_tilecrossed_images:
-    #     blank_canvas.save(out_folder + "tilecrossed_" + sample_id + ".jpg")
-
-    # save preds of each image
+    # Save predictions for each tile
     patch_results = []
-    patch_results.extend(list(zip(tile_names, tile_dims, preds)))
-
-    # save results in a tsv file
+    patch_results.extend(list(zip(tile_names, tile_dims, preds)))    
     patch_results_df = pd.DataFrame.from_records(
         patch_results, columns=["Tile", "Dimensions", "Keep"])
     patch_results_df.to_csv(out_folder + "tile_selection.tsv",
                             index=False,
                             sep="\t")
-
-    print("OK")
