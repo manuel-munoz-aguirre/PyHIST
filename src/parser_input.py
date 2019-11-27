@@ -139,12 +139,20 @@ def build_parser():
     group_downsampling = parser.add_argument_group('downsampling')
     group_downsampling.add_argument(
         '--output-downsample',
-        help='Downsampling factor for the output image.',
+        help='Downsampling factor for the output image. Must be a power of 2.',
         type=int,
         default=16)
     group_downsampling.add_argument(
-        "--downsample-mask",
-        help='Downsampling factor to calculate image mask',
+        "--mask-downsample",
+        help='''Downsampling factor to calculate image mask. A higher number
+        will make the mask computer faster at the expense of
+        segmentation quality. Must be a power of 2.''',
+        type=int,
+        default=16)
+    group_downsampling.add_argument(
+        "--tilecross-downsample",
+        help='''Downsampling factor to calculate the tile-crossed image.
+        Must be a power of 2.''',
         type=int,
         default=16)
 
@@ -228,5 +236,5 @@ def build_parser():
         range between 0 and 1. Default value is 0.5.''',
         metavar='CONTENT_THRESHOLD',
         dest='thres')
-    
+
     return parser

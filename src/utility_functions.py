@@ -3,35 +3,35 @@ import openslide
 import numpy as np
 import cv2
 import warnings
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import subprocess
 import sys
 import time
 import math
 
 
-def produce_edges_old(in_img, out_img, level):
-    '''
-    Takes as input an image and uses Canny edge detector from opencv
-    library to produce an image in which the detected edges are marked.
-    '''
+# def produce_edges_old(in_img, out_img, level):
+#     '''
+#     Takes as input an image and uses Canny edge detector from opencv
+#     library to produce an image in which the detected edges are marked.
+#     '''
 
-    # read the image
-    svs = openslide.OpenSlide(in_img)
-    img = svs.read_region((0, 0), level, svs.level_dimensions[level])
-    img = np.array(img.convert('RGB'))
-    img = img[..., ::-1]
+#     # read the image
+#     svs = openslide.OpenSlide(in_img)
+#     img = svs.read_region((0, 0), level, svs.level_dimensions[level])
+#     img = np.array(img.convert('RGB'))
+#     img = img[..., ::-1]
 
-    # run Canny edge detector
-    edges = cv2.Canny(img, 100, 200)
+#     # run Canny edge detector
+#     edges = cv2.Canny(img, 100, 200)
 
-    # save the produced image in a ppm format
-    edges = Image.fromarray(edges)
-    warnings.filterwarnings("ignore")
+#     # save the produced image in a ppm format
+#     edges = Image.fromarray(edges)
+#     warnings.filterwarnings("ignore")
 
-    edges = edges.convert('RGB')
-    edges.save(out_img, 'PPM')
-    warnings.filterwarnings("default")
+#     edges = edges.convert('RGB')
+#     edges.save(out_img, 'PPM')
+#     warnings.filterwarnings("default")
 
 
 def downsample_image(svs, downsampling_factor, mode="numpy"):
@@ -64,21 +64,28 @@ def downsample_image(svs, downsampling_factor, mode="numpy"):
     return img, best_downsampling_level
 
 
-def produce_edges(in_img, out_img, downsampling_factor, verbose):
+def produce_edges(args, out_img):
     '''
-    Takes as input an image and uses Canny edge detector from opencv
+    Takes as input an image and uses the canny edge detector from OpenCV
     library to produce an image in which the detected edges are marked.
+
+    Args:
+        args: HistologySegment input arguments.
+        out_img (str): Relative path to store the output edge image.
+
+    Returns:
+        None
     '''
 
     print("== Step 1: Producing edge image... ==")
     ts = time.time()
 
     # Read the image
-    svs = openslide.OpenSlide(in_img)
-    img, bdl = downsample_image(svs, downsampling_factor)
+    svs = openslide.OpenSlide(args.svs)
+    img, bdl = downsample_image(svs, args.mask_downsample)
 
-    if verbose:
-        print("Requested " + str(downsampling_factor) +
+    if args.verbose:
+        print("Requested " + str(args.mask_downsample) +
               "x downsampling for edge detection.")
         print("SVS level 0 dimensions:", svs.dimensions)
         print("Using level " + str(bdl) + " to downsample.")
@@ -87,7 +94,7 @@ def produce_edges(in_img, out_img, downsampling_factor, verbose):
     # Run Canny edge detector
     edges = cv2.Canny(img, 100, 200)
 
-    # Save the produced image in PPM format to feed to Felzenszwalb's algorithm
+    # Save the produced image in PPM format to give to Felzenszwalb's algorithm
     edges = Image.fromarray(edges)
     warnings.filterwarnings("ignore")
 
@@ -96,7 +103,7 @@ def produce_edges(in_img, out_img, downsampling_factor, verbose):
     warnings.filterwarnings("default")
     te = time.time()
 
-    if verbose:
+    if args.verbose:
         print("Elapsed time: " + str(te - ts))
 
 
@@ -104,6 +111,14 @@ def produce_test_image(image, out_folder, args):
     '''
     Produces a PNG version of the segmented PPM image overlaying the
     grid with the selected patch size at the output downscale resolution.
+
+    Args:
+        image (str): Sample name (filename without extension).
+        out_folder (str): Output folder for the test image.
+        args: HistologySegment input arguments.
+
+    Returns:
+        None.
     '''
 
     print("Producing test image...")
@@ -129,24 +144,31 @@ def produce_test_image(image, out_folder, args):
     cv2.imwrite(out_folder + "test_" + image + ".png", resized_mask)
 
 
-def produce_segmented_image(sample_id, out_folder, sigma, k_const,
-                            min_segmentsize, verbose):
+def produce_segmented_image(sample_id, out_folder, args):
     '''
-    Invokes a shell to run Felzenszwalb's algorithm with the PPM
+    Invokes a shell process to run Felzenszwalb's algorithm with the PPM
     image containing the edges from the Canny detector.
+
+    Args:
+        sample_id (str): Sample name (filename without extension).
+        out_folder (str): Output folder.
+        args: HistologySegment input arguments.
+
+    Returns:
+        None
     '''
     print("\n== Step 2: Running Felzenszwalb's algorithm over the mask ==")
 
     ts = time.time()
-    bashCommand = "src/Felzenszwalb_algorithm/segment " + str(sigma) + " " + \
-        str(k_const) + " " + str(min_segmentsize) + " " + out_folder + \
-        "edges_" + sample_id + ".ppm" + " " + \
+    bashCommand = "src/Felzenszwalb_algorithm/segment " + str(args.sigma) + \
+        " " + str(args.k_const) + " " + str(args.minimum_segmentsize) + " " + \
+        out_folder + "edges_" + sample_id + ".ppm" + " " + \
         out_folder + "segmented_" + sample_id + ".ppm"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     te = time.time()
 
-    if verbose:
+    if args.verbose:
         print("Elapsed time: " + str(te - ts))
 
     if error is not None:
