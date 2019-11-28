@@ -1,7 +1,7 @@
 import os
 import platform
 import sys
-import time
+import openslide
 from src import utility_functions, patch_selector, parser_input
 import subprocess
 
@@ -21,7 +21,7 @@ def check_compilation():
                 subprocess.check_call(["make"],
                                       stdout=subprocess.PIPE,
                                       cwd="src/Felzenszwalb_algorithm/")
-            except:
+            except Exception:
                 print("Compilation of Felzenszwalb's algorithm failed."
                       "Please compile it before running this script. Exiting.")
                 sys.exit(1)
@@ -54,6 +54,16 @@ def check_arguments(args):
               "of two.")
         sys.exit(1)
 
+    # Check if the image can be read
+    try:
+        _ = openslide.OpenSlide(args.svs)
+    except Exception:
+        print("Unsupported format, or file not found! Quitting.")
+        sys.exit(1)
+
+    # TODO: Check that the combination of downsampling arguments is logical
+    # i.e. requesting a patch bigger than the downsample etc.
+
 
 def main():
 
@@ -64,16 +74,14 @@ def main():
         sys.exit(1)
     args = parser.parse_args()
 
-    # Argument checker
+    # Checking correct arguments and compilation of segmentation algorithm
     check_arguments(args)
-
-    # Check if the segmentation algorithm is compiled
     check_compilation()
 
+    # Create output folder
     sample_id = args.svs.split('/')[-1]
     sample_id = sample_id.split('.')[0]
 
-    # Create output folder
     img_outpath = args.output
     if not os.path.exists(img_outpath):
         os.makedirs(img_outpath)
@@ -103,12 +111,11 @@ def main():
                        img_outpath,
                        args)
 
-    # # Delete segmented and edge images
-    # if (not args.save_mask):
-    #     os.remove(output + "segmented_" + sample_id + ".ppm")
-    # if (not args.save_edges):
-    #     os.remove(output + "edges_" + sample_id + ".ppm")
-    # print('ALL DONE!')
+    # Delete segmented and edge images
+    if not args.save_mask:
+        os.remove(img_outpath + "segmented_" + sample_id + ".ppm")
+    if not args.save_edges:
+        os.remove(img_outpath + "edges_" + sample_id + ".ppm")
 
 
 if __name__ == "__main__":

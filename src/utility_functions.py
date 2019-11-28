@@ -3,35 +3,10 @@ import openslide
 import numpy as np
 import cv2
 import warnings
-# from matplotlib import pyplot as plt
 import subprocess
 import sys
 import time
 import math
-
-
-# def produce_edges_old(in_img, out_img, level):
-#     '''
-#     Takes as input an image and uses Canny edge detector from opencv
-#     library to produce an image in which the detected edges are marked.
-#     '''
-
-#     # read the image
-#     svs = openslide.OpenSlide(in_img)
-#     img = svs.read_region((0, 0), level, svs.level_dimensions[level])
-#     img = np.array(img.convert('RGB'))
-#     img = img[..., ::-1]
-
-#     # run Canny edge detector
-#     edges = cv2.Canny(img, 100, 200)
-
-#     # save the produced image in a ppm format
-#     edges = Image.fromarray(edges)
-#     warnings.filterwarnings("ignore")
-
-#     edges = edges.convert('RGB')
-#     edges.save(out_img, 'PPM')
-#     warnings.filterwarnings("default")
 
 
 def downsample_image(svs, downsampling_factor, mode="numpy"):

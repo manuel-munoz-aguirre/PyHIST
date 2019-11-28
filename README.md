@@ -60,6 +60,7 @@ The '-v' option mounts the current working directory and all child folders insid
 
 ## Examples
 
+python segment_hist.py --content-threshold 0.05 --sigma 0.7 --patch-size 64 --mask-downsample 16 --output-downsample 16 --tilecross-downsample 64  --verbose --save-tilecrossed-image test_resources/GTEX-1117F-0125.svs
 
 Keep segmented image, save patches, produce a thumbnail with marked the selected patches, use a content threshold of 0.1 for patch selection.
     

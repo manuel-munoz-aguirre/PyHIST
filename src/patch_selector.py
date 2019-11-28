@@ -23,7 +23,7 @@ def run(sample_id, img_outpath, args):
         classifies a tile to be selected or not
         '''
         bg = mask_patch == bg_color
-#        bg = bg.view(dtype=np.int8)
+        # bg = bg.view(dtype=np.int8)
 
         bg_proportion = np.sum(bg) / bg.size
         if bg_proportion <= (1 - thres):
@@ -91,40 +91,9 @@ def run(sample_id, img_outpath, args):
 
         return bg_color, bord_unique
 
-    # def count_n_tiles(dims, patch_size):
-    #     '''
-    #     Counts the number of tiles the image is going to split.
-    #     '''
-    #     width = dims[0] // patch_size
-    #     if dims[0] % patch_size > 0:
-    #         width += 1
-    #     height = dims[1] // patch_size
-    #     if dims[1] % patch_size > 0:
-    #         height += 1
-    #     n_tiles = width * height
-    #     return n_tiles, width, height
-
-    # DEBUG VARS
-    # TODO: Add tilecross_donwsample to arguments and
-    # save_foregroundonly
-    # svs_fname = "test_resources/GTEX-1117F-0125.svs"
-    # out_folder = "output/GTEX-1117F-0125/"
-    # sample_id = "GTEX-1117F-0125"
-    # lines = 10
-    # borders = '1111'
-    # corners = '0000'
-    # save_patches = False
-    # patch_size = 64
-    # output_downsample = 16
-    # mask_downsample = 16
-    # verbose = True
-    # tilecross_downsample = 32
-    # threshold = 0.1
-    # save_tilecrossed_images = True
-    # save_foregroundonly = False
-
     # Open mask image as BGR
     print("\n== Step 3: Selecting tiles ==")
+    ts = time.time()
     mask = cv2.imread(img_outpath + "segmented_" + sample_id + ".ppm")
 
     # Identify background colors from the mask
@@ -152,11 +121,6 @@ def run(sample_id, img_outpath, args):
         if not os.path.exists(out_tiles):
             os.makedirs(out_tiles)
 
-    # # Count the number of tiles
-    # n_tiles, *n_tiles_ax = count_n_tiles(image_dims, patch_size)
-    # print(str(n_tiles) + " tiles")
-    # digits = len(str(n_tiles)) + 1
-
     # Initialize deep zoom generator
     dzg = deepzoom.DeepZoomGenerator(svs,
                                      tile_size=args.patch_size,
@@ -174,8 +138,8 @@ def run(sample_id, img_outpath, args):
     digits_padding = int(math.log10(n_tiles)) + 1
 
     # Calculate patch size in the mask
-    mask_patch_size = int(
-        np.ceil(args.patch_size * (args.output_downsample/args.mask_downsample)))
+    mask_patch_size = int(np.ceil(
+        args.patch_size * (args.output_downsample/args.mask_downsample)))
 
     # Deep zoom generator for the mask
     dzgmask = deepzoom.DeepZoomGenerator(openslide.ImageSlide(mask),
@@ -192,8 +156,9 @@ def run(sample_id, img_outpath, args):
             svs, args.tilecross_downsample, mode="numpy")[0]
 
         # Calculate patch size in the mask
-        tilecross_patchsize = int(
-            np.ceil(args.patch_size * (args.output_downsample/args.tilecross_downsample)))
+        tilecross_patchsize = int(np.ceil(
+            args.patch_size * (
+                args.output_downsample/args.tilecross_downsample)))
 
         # Draw the grid at the scaled patchsize
         x_shift, y_shift = tilecross_patchsize, tilecross_patchsize
@@ -235,12 +200,14 @@ def run(sample_id, img_outpath, args):
     row, col, i = 0, 0, 0
     tile_names = []
     tile_dims = []
+    tile_rows = []
+    tile_cols = []
 
     # TODO: pad tiles (or drop?)
     # Categorize tiles using the selector function
     while row < dzg_selectedlevel_maxtilecoords[1]:
 
-        print("===", str(col), str(row), "===")
+        # print("===", str(col), str(row), "===")
 
         # Extract the tile from the mask
         mask_tile = dzgmask.get_tile(dzgmask.level_count - 1, (col, row))
@@ -259,6 +226,8 @@ def run(sample_id, img_outpath, args):
             tile_names.append(sample_id + "_" +
                               str((i)).rjust(digits_padding, '0'))
             tile_dims.append(str(tile.size[0]) + "," + str(tile.size[1]))
+            tile_rows.append(row)
+            tile_cols.append(col)
 
             # Save tile
             tile.save(out_tiles + tile_names[i] + ".jpg")
@@ -269,15 +238,16 @@ def run(sample_id, img_outpath, args):
             start_w = col * (tilecross_patchsize)
             start_h = row * (tilecross_patchsize)
 
-            print(start_w, start_h)
+            # print(start_w, start_h)
 
-            # If we reach the edge of the image, we only can draw until the edge pixel
-            print("target pos: ", start_w + tilecross_patchsize,
-                  "/", tilecrossed_img.size[0])
+            # If we reach the edge of the image, we only can draw until
+            # the edge pixel
+            # print("target pos: ", start_w + tilecross_patchsize,
+            #       "/", tilecrossed_img.size[0])
 
             if (start_w + tilecross_patchsize) >= tilecrossed_img.size[0]:
                 cl_w = tilecrossed_img.size[0] - start_w
-                print("row jump: " + str(cl_w))
+                # print("row jump: " + str(cl_w))
             else:
                 cl_w = tilecross_patchsize
 
@@ -292,12 +262,12 @@ def run(sample_id, img_outpath, args):
                 # From top left to bottom right
                 draw.line([(start_w, start_h),
                            (start_w + cl_w, start_h + cl_h)],
-                          fill=(255, 0, 0))
+                          fill=(0, 0, 255))
 
                 # From bottom left to top right
                 draw.line([(start_w, start_h + cl_h),
                            (start_w + cl_w, start_h)],
-                          fill=(255, 0, 0))
+                          fill=(0, 0, 255))
 
             # Jump to the next tilecross tile
             tc_w = tc_w + tilecross_patchsize + 1
@@ -310,8 +280,8 @@ def run(sample_id, img_outpath, args):
             col = 0
             row += 1
 
-            print("-->" + str((row, col)) + "/" +
-                  str(dzg_selectedlevel_maxtilecoords))
+            # print("-->" + str((row, col)) + "/" +
+            #       str(dzg_selectedlevel_maxtilecoords))
 
             if args.save_tilecrossed_image:
                 tc_w = 0
@@ -327,9 +297,17 @@ def run(sample_id, img_outpath, args):
 
     # Save predictions for each tile
     patch_results = []
-    patch_results.extend(list(zip(tile_names, tile_dims, preds)))
+    patch_results.extend(list(zip(tile_names,
+                                  tile_dims,
+                                  preds,
+                                  tile_rows,
+                                  tile_cols)))
     patch_results_df = pd.DataFrame.from_records(
-        patch_results, columns=["Tile", "Dimensions", "Keep"])
+        patch_results, columns=["Tile", "Dimensions", "Keep", "Row", "Column"])
     patch_results_df.to_csv(img_outpath + "tile_selection.tsv",
                             index=False,
                             sep="\t")
+
+    # Finishing
+    te = time.time()
+    print("Elapsed time: " + str(te - ts))
