@@ -135,7 +135,12 @@ def run(sample_id, img_outpath, args):
     dzg_real_downscaling = np.divide(svs.dimensions, dzg.level_dimensions)[
         :, 0][dzg_selectedlevel_idx]
     n_tiles = np.prod(dzg_selectedlevel_maxtilecoords)
-    digits_padding = int(math.log10(n_tiles)) + 1
+    digits_padding = int(math.log10(n_tiles))
+
+    print(dzg_levels)
+    print(dzg_selectedlevel_idx)
+    print(dzg_selectedlevel_dims)
+    print(dzg_selectedlevel_maxtilecoords)
 
     # Calculate patch size in the mask
     mask_patch_size = int(np.ceil(
@@ -199,15 +204,16 @@ def run(sample_id, img_outpath, args):
     preds = [None] * n_tiles
     row, col, i = 0, 0, 0
     tile_names = []
-    tile_dims = []
+    tile_dims_w = []
+    tile_dims_h = []
     tile_rows = []
     tile_cols = []
 
-    # TODO: pad tiles (or drop?)
     # Categorize tiles using the selector function
     while row < dzg_selectedlevel_maxtilecoords[1]:
 
         # print("===", str(col), str(row), "===")
+        # print(str(col) + "/" + str(row) + " | " + str(tc_w) + "/" + str(tc_h))
 
         # Extract the tile from the mask
         mask_tile = dzgmask.get_tile(dzgmask.level_count - 1, (col, row))
@@ -225,7 +231,8 @@ def run(sample_id, img_outpath, args):
             # Prepare metadata
             tile_names.append(sample_id + "_" +
                               str((i)).rjust(digits_padding, '0'))
-            tile_dims.append(str(tile.size[0]) + "," + str(tile.size[1]))
+            tile_dims_w.append(tile.size[0])
+            tile_dims_h.append(tile.size[1])
             tile_rows.append(row)
             tile_cols.append(col)
 
@@ -298,12 +305,14 @@ def run(sample_id, img_outpath, args):
     # Save predictions for each tile
     patch_results = []
     patch_results.extend(list(zip(tile_names,
-                                  tile_dims,
+                                  tile_dims_w,
+                                  tile_dims_h,
                                   preds,
                                   tile_rows,
                                   tile_cols)))
     patch_results_df = pd.DataFrame.from_records(
-        patch_results, columns=["Tile", "Dimensions", "Keep", "Row", "Column"])
+        patch_results, columns=["Tile", "Width", "Height",
+                                "Keep", "Row", "Column"])
     patch_results_df.to_csv(img_outpath + "tile_selection.tsv",
                             index=False,
                             sep="\t")
