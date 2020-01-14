@@ -45,5 +45,5 @@ for i in range(0, metadata.shape[0]):
 blank_canvas.save("out.jpg")
 
 
-with pd.option_context('display.max_rows', -1, 'display.max_columns', 5):
-    print(metadata.iloc[0:100, :])
+# with pd.option_context('display.max_rows', -1, 'display.max_columns', 5):
+#     print(metadata.iloc[0:100, :])

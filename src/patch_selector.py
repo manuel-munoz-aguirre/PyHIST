@@ -135,7 +135,8 @@ def run(sample_id, img_outpath, args):
     dzg_real_downscaling = np.divide(svs.dimensions, dzg.level_dimensions)[
         :, 0][dzg_selectedlevel_idx]
     n_tiles = np.prod(dzg_selectedlevel_maxtilecoords)
-    digits_padding = int(math.log10(n_tiles))
+    #digits_padding = int(math.log10(n_tiles))
+    digits_padding = 6
 
     print(dzg_levels)
     print(dzg_selectedlevel_idx)
