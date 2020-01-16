@@ -216,7 +216,8 @@ def run(sample_id, img_outpath, args):
         # print("===", str(col), str(row), "===")
         # print(str(col) + "/" + str(row) + " | " + str(tc_w) + "/" + str(tc_h))
 
-        # Extract the tile from the mask
+        # Extract the tile from the mask (the last level is used
+        # since the mask is already rescaled)
         mask_tile = dzgmask.get_tile(dzgmask.level_count - 1, (col, row))
 
         # Tile converted to BGR
