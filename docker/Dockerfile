@@ -16,13 +16,14 @@ ENV PATH /opt/conda/envs/$(head -1 /tmp/environment.yml | cut -d' ' -f2)/bin:$PA
 RUN apt-get update --fix-missing -qq && \
 	apt-get install -y -q build-essential \
 	libmagickwand-dev \
-	libgl1-mesa-glx
+	libgl1-mesa-glx && \
+	conda install pixman=0.36.0
 
 # Copy script
-# WORKDIR /segment_hist
-# COPY segment_hist* /segment_hist/
-# ADD src /segment_hist/src
+WORKDIR /segment_hist
+COPY segment_hist* /segment_hist/
+ADD src /segment_hist/src
 
 # Compile segmentation binary
-# RUN cd src/Felzenszwalb_algorithm/ && \
-#	make
+RUN cd src/Felzenszwalb_algorithm/ && \
+	make
