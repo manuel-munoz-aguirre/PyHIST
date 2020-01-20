@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
-from PIL import Image, ImageDraw
+import math
 import openslide
-from openslide import deepzoom
 import cv2
 import os
-import math
 import time
+from PIL import Image, ImageDraw
+from openslide import deepzoom
 from src import utility_functions
 
 
@@ -135,13 +135,7 @@ def run(sample_id, img_outpath, args):
     dzg_real_downscaling = np.divide(svs.dimensions, dzg.level_dimensions)[
         :, 0][dzg_selectedlevel_idx]
     n_tiles = np.prod(dzg_selectedlevel_maxtilecoords)
-    #digits_padding = int(math.log10(n_tiles))
-    digits_padding = 6
-
-    print(dzg_levels)
-    print(dzg_selectedlevel_idx)
-    print(dzg_selectedlevel_dims)
-    print(dzg_selectedlevel_maxtilecoords)
+    digits_padding = int(math.log10(n_tiles))
 
     # Calculate patch size in the mask
     mask_patch_size = int(np.ceil(
@@ -184,7 +178,15 @@ def run(sample_id, img_outpath, args):
 
     if args.verbose:
         print("Original image dimensions:", str(image_dims))
-        print("Output image information: ")
+        
+        print("\nMask information: ")
+        print("-Mask downscaling factor: " + str(args.mask_downsample))
+        print("-Pixel dimensions: " + str(dzgmask_dims))
+        print("-Calculated patch size: " + str(mask_patch_size))
+        print("-Max tile coordinates: " + str(dzgmask_maxtilecoords))
+        print("-Number of tiles: " + str(dzgmask_ntiles))
+
+        print("\nOutput image information: ")
         print("Requested " + str(args.output_downsample) +
               "x downsampling for output.")
         print("Properties of selected deep zoom level:")
@@ -194,13 +196,8 @@ def run(sample_id, img_outpath, args):
         print("-Max tile coordinates: " + str(dzg_selectedlevel_maxtilecoords))
         print("-Number of tiles: " + str(n_tiles))
 
-        print("\nMask information: ")
-        print("-Mask downscaling factor: " + str(args.mask_downsample))
-        print("-Pixel dimensions: " + str(dzgmask_dims))
-        print("-Calculated patch size: " + str(mask_patch_size))
-        print("-Max tile coordinates: " + str(dzgmask_maxtilecoords))
-        print("-Number of tiles: " + str(dzgmask_ntiles))
-
+        print("\nSelecting patches...")
+        
     # Counters
     preds = [None] * n_tiles
     row, col, i = 0, 0, 0
@@ -212,9 +209,6 @@ def run(sample_id, img_outpath, args):
 
     # Categorize tiles using the selector function
     while row < dzg_selectedlevel_maxtilecoords[1]:
-
-        # print("===", str(col), str(row), "===")
-        # print(str(col) + "/" + str(row) + " | " + str(tc_w) + "/" + str(tc_h))
 
         # Extract the tile from the mask (the last level is used
         # since the mask is already rescaled)
@@ -247,16 +241,10 @@ def run(sample_id, img_outpath, args):
             start_w = col * (tilecross_patchsize)
             start_h = row * (tilecross_patchsize)
 
-            # print(start_w, start_h)
-
             # If we reach the edge of the image, we only can draw until
             # the edge pixel
-            # print("target pos: ", start_w + tilecross_patchsize,
-            #       "/", tilecrossed_img.size[0])
-
             if (start_w + tilecross_patchsize) >= tilecrossed_img.size[0]:
                 cl_w = tilecrossed_img.size[0] - start_w
-                # print("row jump: " + str(cl_w))
             else:
                 cl_w = tilecross_patchsize
 
@@ -289,9 +277,6 @@ def run(sample_id, img_outpath, args):
             col = 0
             row += 1
 
-            # print("-->" + str((row, col)) + "/" +
-            #       str(dzg_selectedlevel_maxtilecoords))
-
             if args.save_tilecrossed_image:
                 tc_w = 0
                 tc_h = tc_h + tilecross_patchsize + 1
@@ -301,8 +286,7 @@ def run(sample_id, img_outpath, args):
 
     # Saving tilecrossed image
     if args.save_tilecrossed_image:
-        tilecrossed_img.save(
-            img_outpath + "/tilecrossed_" + sample_id + ".png")
+        tilecrossed_img.save(img_outpath + "/tilecrossed_" + sample_id + ".png")
 
     # Save predictions for each tile
     patch_results = []
