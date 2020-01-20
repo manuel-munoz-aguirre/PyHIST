@@ -60,10 +60,7 @@ def check_arguments(args):
     except Exception:
         print("Unsupported format, or file not found! Quitting.")
         sys.exit(1)
-
-    # TODO: Check that the combination of downsampling arguments is logical
-    # i.e. requesting a patch bigger than the downsample etc.
-
+        
 
 def main():
 
