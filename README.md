@@ -1,11 +1,10 @@
 <h1 align="center">
 <p>PyHIST: A Histological Image Segmentation Tool
+<br>
+<a href="https://github.com/manuel-munoz-aguirre/PyHIST/blob/master/LICENSE">
+<img alt="GitHub" src="https://img.shields.io/badge/License-GPLv3-blue.svg">
+</a>
 </h1>
-<p align="center">
-    <a href="https://github.com/manuel-munoz-aguirre/PyHIST/blob/master/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/badge/License-GPLv3-blue.svg">
-    </a>
-</p>
 
 [About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Tutorial](#tutorial) | [References](#references)
 
@@ -71,7 +70,7 @@ Start a Docker container in interactive mode, mounting a local folder `images` i
 
 
 ```shell
-docker run -it -v /path/with/svs/images/:/pyhist/images/ PyHIST
+docker run -it -v /path/with/svs/images/:/pyhist/images/ -v /etc/passwd:/etc/passwd PyHIST
 ```
 
 ### Using PyHIST
