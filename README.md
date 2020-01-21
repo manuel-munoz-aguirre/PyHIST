@@ -1,10 +1,10 @@
 <h1 align="center">
-<p>PyHIST: An histological image segmentation tool
+<p>PyHIST: An Histological Image Segmentation Tool
 </h1>
 
-About PyHIST | Setup | Quickstart | Tutorial | References
+[About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Tutorial](#tutorial) | [References](#references)
 
-## About PyHIST
+## About PyHIST<a name="about"></a>
 
 A semi-automatic pipeline to segment tissue slices from the background in high resolution whole-slde histopathological images. Furthermore, it extracts patches of tissue segments from the full resolution image. 
 
@@ -16,7 +16,15 @@ Moreover, the pipeline can function in test mode. This could assist the user in 
 
 
 
-## Setup
+## Setup<a name="setup"></a>
+Clone the repository and navigate to it:
+
+```shell
+git clone https://github.com/manuel-munoz-aguirre/HistologySegment.git
+cd HistologySegment
+```
+ downloading the repository, move inside the repository folder:
+
 ### PyHIST Docker image
 After downloading the repository, move inside the repository folder:
 
@@ -44,7 +52,7 @@ Python 3
 | Matplotlib                | 
 
 
-## Quickstart
+## Quickstart<a name="quickstart"></a>
 ### Using the docker image
 
 Once the image is built, to execute HistologySegment with docker, interactive session is required.
@@ -64,7 +72,7 @@ The '-v' option mounts the current working directory and all child folders insid
 ### Using PyHIST
 TODO
 
-## Tutorial
+## Tutorial <a name="tutorial"></a>
 TODO
 
 
@@ -104,6 +112,6 @@ TODO
 <!-- segment_hist -h -->
 <!-- ``` -->
 
-## References
+## References<a name="references"></a>
 
 Felzenszwalb, P.F., & Huttenlocher, D.P. (2004). Efficient Graph-Based Image Segmentation. International Journal of Computer Vision, 59, 167-181.
