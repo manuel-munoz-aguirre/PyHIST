@@ -17,7 +17,8 @@ RUN apt-get update --fix-missing -qq && \
 	apt-get install -y -q build-essential \
 	libmagickwand-dev \
 	libgl1-mesa-glx && \
-	conda install pixman=0.36.0
+	conda install pixman=0.36.0 && \
+	alias ll="ls -l"
 
 # Copy script
 WORKDIR /segment_hist
