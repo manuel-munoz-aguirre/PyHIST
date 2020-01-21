@@ -7,22 +7,22 @@ import subprocess
 
 
 def check_compilation():
-    if not os.path.isfile("src/Felzenszwalb_algorithm/segment"):
+    if not os.path.isfile("src/graph_segmentation/segment"):
 
         # If Windows, the user must compile the script manually, otherwise
         # we attempt to compile it
         if platform.system() == "Windows":
-            print("Please compile Felzenszwalb's algorithm before"
+            print("Please compile the segmentation algorithm before"
                   "running this script. Exiting.")
             sys.exit(1)
         else:
-            print("Compiling Felzenszwalb's algorithm...")
+            print("Compiling the graph segmentation algorithm...")
             try:
                 subprocess.check_call(["make"],
                                       stdout=subprocess.PIPE,
-                                      cwd="src/Felzenszwalb_algorithm/")
+                                      cwd="src/graph_segmentation/")
             except Exception:
-                print("Compilation of Felzenszwalb's algorithm failed."
+                print("Compilation of the segmentation algorithm failed."
                       "Please compile it before running this script. Exiting.")
                 sys.exit(1)
 

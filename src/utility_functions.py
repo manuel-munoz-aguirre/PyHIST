@@ -69,7 +69,8 @@ def produce_edges(args, out_img):
     # Run Canny edge detector
     edges = cv2.Canny(img, 100, 200)
 
-    # Save the produced image in PPM format to give to Felzenszwalb's algorithm
+    # Save the produced image in PPM format to give to the
+    # segmentation algorithm
     edges = Image.fromarray(edges)
     warnings.filterwarnings("ignore")
 
@@ -121,8 +122,8 @@ def produce_test_image(image, out_folder, args):
 
 def produce_segmented_image(sample_id, out_folder, args):
     '''
-    Invokes a shell process to run Felzenszwalb's algorithm with the PPM
-    image containing the edges from the Canny detector.
+    Invokes a shell process to run the graph-based segmentation
+    algorithm with the PPM image containing the edges from the Canny detector.
 
     Args:
         sample_id (str): Sample name (filename without extension).
@@ -132,10 +133,10 @@ def produce_segmented_image(sample_id, out_folder, args):
     Returns:
         None
     '''
-    print("\n== Step 2: Running Felzenszwalb's algorithm over the mask ==")
+    print("\n== Step 2: Segmentation over the mask ==")
 
     ts = time.time()
-    bashCommand = "src/Felzenszwalb_algorithm/segment " + str(args.sigma) + \
+    bashCommand = "src/graph_segmentation/segment " + str(args.sigma) + \
         " " + str(args.k_const) + " " + str(args.minimum_segmentsize) + " " + \
         out_folder + "edges_" + sample_id + ".ppm" + " " + \
         out_folder + "segmented_" + sample_id + ".ppm"

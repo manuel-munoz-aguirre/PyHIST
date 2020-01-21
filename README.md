@@ -25,7 +25,7 @@ The public docker image for PyHIST can be downloaded from the Docker Hub:
 docker pull [TO DO]
 ```
 
-Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
+After downloading it, you can skip directly to [Quickstart: Using the Docker image](#usedocker). Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
 ```shell
 git clone https://github.com/manuel-munoz-aguirre/HistologySegment.git
 cd HistologySegment
@@ -45,9 +45,9 @@ cd HistologySegment
 
 PyHIST has the following dependencies:
 * Python (>3.6):
-** Openslide, pandas, numpy, PIL, cv2
+  * Openslide, pandas, numpy, PIL, cv2
 * Other:
-** libgl1-mesa-glx
+  * libgl1-mesa-glx
 
 A `conda` environment with all the necessary Python dependencies can be created with:
 ```
@@ -61,7 +61,7 @@ make
 ```
 
 ## Quickstart<a name="quickstart"></a>
-### Using the Docker image
+### Using the Docker image<a name="usedocker"></a>
 Start a Docker container in interactive mode, mounting a local folder `images` inside the container: 
 
 
