@@ -1,6 +1,11 @@
 <h1 align="center">
 <p>PyHIST: A Histological Image Segmentation Tool
 </h1>
+<p align="center">
+    <a href="https://github.com/manuel-munoz-aguirre/PyHIST/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/badge/License-GPLv3-blue.svg">
+    </a>
+</p>
 
 [About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Tutorial](#tutorial) | [References](#references)
 
