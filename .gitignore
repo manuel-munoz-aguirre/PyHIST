@@ -5,8 +5,7 @@
 .vscode
 *.pyc
 __pycache__
-test_resources/
 output/
 *.py#
 .#*
-src/Felzenszwalb_algorithm/segment
+src/graph_segmentation/segment
