@@ -27,20 +27,20 @@ docker pull [TO DO]
 
 After downloading it, you can skip directly to [Quickstart: Using the Docker image](#usedocker). Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
 ```shell
-git clone https://github.com/manuel-munoz-aguirre/HistologySegment.git
-cd HistologySegment
+https://github.com/manuel-munoz-aguirre/PyHIST.git
+cd PyHIST
 ```
 
 Build the docker image with the following command:
 ```shell
-docker build -f docker/Dockerfile -t histologysegment .
+docker build -f docker/Dockerfile -t PyHIST .
 ```
 
 ### Installation<a name="installation"></a>
 Clone the respository and move into the folder:
 ```shell
-git clone https://github.com/manuel-munoz-aguirre/HistologySegment.git
-cd HistologySegment
+git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
+cd PyHIST
 ```
 
 PyHIST has the following dependencies:
@@ -56,7 +56,7 @@ conda env create -f docker/environment.yml
 
 Compile the segmentation tool:
 ```
-cd src/Felzenszwalb_algorithm/
+cd src/graph_segmentation/
 make
 ```
 
@@ -66,18 +66,14 @@ Start a Docker container in interactive mode, mounting a local folder `images` i
 
 
 ```shell
-docker run -u USERID:GROUPID -it -v $PWD:$PWD histologysegment bash
-./segment_hist --help # check the help page
-./segment_hist -k 1000 -m 1000 -l 2 -d 1024 -n 50 -pfxet 0.1 path/to/input/file # run the pipeline
-mv segment_hist_output/ mounted/folder/ # move the output in the local system
-exit # exit the interactive session
+docker run -it -v /path/with/svs/images/:/pyhist/images/ PyHIST
 ```
 
 ### Using PyHIST
 TODO
 
 ```
-python segment_hist.py --content-threshold 0.05 --sigma 0.7 --patch-size 64 --mask-downsample 16 --output-downsample 16 --tilecross-downsample 64  --verbose --save-tilecrossed-image test_resources/GTEX-1117F-0125.svs
+python pyhist.py --content-threshold 0.05 --sigma 0.7 --patch-size 64 --mask-downsample 16 --output-downsample 16 --tilecross-downsample 64  --verbose --save-tilecrossed-image test_resources/GTEX-1117F-0125.svs
 ```
 
 ## Tutorial <a name="tutorial"></a>

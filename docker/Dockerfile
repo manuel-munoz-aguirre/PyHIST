@@ -16,7 +16,7 @@ RUN apt-get update --fix-missing -qq && \
 	libmagickwand-dev \
 	libgl1-mesa-glx && \
 	conda install pixman=0.36.0 && \
-	alias ll="ls -l"
+	echo "alias ll='ls -l'" > ~/.bashrc
 
 # Copy script
 WORKDIR /pyhist
