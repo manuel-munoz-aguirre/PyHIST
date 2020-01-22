@@ -8,6 +8,10 @@
 <a href="https://github.com/manuel-munoz-aguirre/PyHIST/blob/master/LICENSE">
 <img alt="GitHub" src="https://img.shields.io/badge/License-GPLv3-blue.svg">
 </a>
+
+<a href='https://pyhist.readthedocs.io/en/latest/?badge=latest'>
+<img src='https://readthedocs.org/projects/pyhist/badge/?version=latest' alt='Documentation Status' />
+</a>
 </h1>
 
 [About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Tutorial](#tutorial) | [References](#references)
@@ -85,7 +89,7 @@ python pyhist.py --content-threshold 0.05 --sigma 0.7 --patch-size 64 --mask-dow
 ```
 
 ## Tutorial <a name="tutorial"></a>
-PyHIST's [tutorial](http://www.google.com) contains examples to perform histological image segmentation, patch sampling, and explains the inner workings of the segmentation pipeline.
+PyHIST's [tutorial](https://pyhist.readthedocs.io) contains examples to perform histological image segmentation, patch sampling, and explains the inner workings of the segmentation pipeline.
 
 
 ## References<a name="references"></a>
