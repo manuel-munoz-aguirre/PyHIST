@@ -1,4 +1,5 @@
 <div align="center">
+https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/pyhist293px.png
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/pyhist293px.png" alt="logo"></img>
 </div>
 

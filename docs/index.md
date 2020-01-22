@@ -1,11 +1,18 @@
 # PyHIST
 
-PyHIST is a **H**istological **I**mage **S**egmentation **T**ool: a semi-automatic pipeline to extract patches (with tissue content) from histopathology slides. 
+PyHIST is a **H**istological **I**mage **S**egmentation **T**ool: a semi-automatic pipeline to extract patches from SVS histopathology slides. It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks.
 
-![workflow](resources/workflow.png)
-<!-- <div align="center"> -->
-<!-- <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/pyhist293px.png" alt="logo"></img> -->
-<!-- </div> -->
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/workflow.png" alt="logo"></img>
+</div>
 
+![tilecrossed_sample](resources/tilecrossed_sample.png)
 
+Features:
 
+*   Mask generation over regions with tissue content
+*   Generation of patches with tissue content
+*   Quick overview of selected patches
+*   Random patch sampling from the image
+*   Ability to downsample from the original image
+*   Log generation with image patch information

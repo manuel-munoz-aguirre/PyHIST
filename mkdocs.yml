@@ -1,8 +1,8 @@
 site_name: PyHIST
 nav:
-    - Home: index.md
-    - Installation: installation.md
-    - Tutorial: tutorial.md
-    - Parameters: parameters.md
-    - Test case: testcase.md
+    - Home: 'index.md'
+    - Installation: 'installation.md'
+    - Tutorial: 'tutorial.md'
+    - Parameters: 'parameters.md'
+    - Test case: 'testcase.md'
 theme: readthedocs
