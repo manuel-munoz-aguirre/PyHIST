@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/pyhist293px.png" alt="logo"></img>
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/pyhist293px.png" alt="logo"></img>
 </div>
 
 <h1 align="center">
@@ -39,13 +39,13 @@ docker pull [TO DO]
 
 After downloading it, you can skip directly to [Quickstart: Using the Docker image](#usedocker). Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
 ```shell
-https://github.com/manuel-munoz-aguirre/PyHIST.git
+git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
 cd PyHIST
 ```
 
 Build the docker image with the following command:
 ```shell
-docker build -f docker/Dockerfile -t PyHIST .
+docker build -f docker/Dockerfile -t pyhist .
 ```
 
 ### Installation<a name="installation"></a>
@@ -78,7 +78,7 @@ Start a Docker container in interactive mode, mounting a local folder `images` i
 
 
 ```shell
-docker run -it -v /path/with/svs/images/:/pyhist/images/ -v /etc/passwd:/etc/passwd PyHIST
+docker run -it -v /path/with/svs/images/:/pyhist/images/ -v /etc/passwd:/etc/passwd pyhist
 ```
 
 ### Using PyHIST
