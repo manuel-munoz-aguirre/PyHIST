@@ -289,19 +289,20 @@ def run(sample_id, img_outpath, args):
         tilecrossed_img.save(img_outpath + "/tilecrossed_" + sample_id + ".png")
 
     # Save predictions for each tile
-    patch_results = []
-    patch_results.extend(list(zip(tile_names,
-                                  tile_dims_w,
-                                  tile_dims_h,
-                                  preds,
-                                  tile_rows,
-                                  tile_cols)))
-    patch_results_df = pd.DataFrame.from_records(
-        patch_results, columns=["Tile", "Width", "Height",
-                                "Keep", "Row", "Column"])
-    patch_results_df.to_csv(img_outpath + "tile_selection.tsv",
-                            index=False,
-                            sep="\t")
+    if args.save_patches:
+        patch_results = []
+        patch_results.extend(list(zip(tile_names,
+                                      tile_dims_w,
+                                      tile_dims_h,
+                                      preds,
+                                      tile_rows,
+                                      tile_cols)))
+        patch_results_df = pd.DataFrame.from_records(
+            patch_results, columns=["Tile", "Width", "Height",
+                                    "Keep", "Row", "Column"])
+        patch_results_df.to_csv(img_outpath + "tile_selection.tsv",
+                                index=False,
+                                sep="\t")
 
     # Finishing
     te = time.time()
