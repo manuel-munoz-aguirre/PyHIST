@@ -1,3 +1,8 @@
+<!-- <div align="center"> -->
+<!-- <img src="URL" alt="logo"></img> -->
+<!-- </div> -->
+
+
 <h1 align="center">
 <p>PyHIST: A Histological Image Segmentation Tool
 <br>
