@@ -1,7 +1,6 @@
-<!-- <div align="center"> -->
-<!-- <img src="URL" alt="logo"></img> -->
-<!-- </div> -->
-
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/pyhist293px.png" alt="logo"></img>
+</div>
 
 <h1 align="center">
 <p>PyHIST: A Histological Image Segmentation Tool
