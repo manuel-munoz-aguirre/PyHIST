@@ -1,27 +1,23 @@
-# Build conda environment
-FROM continuumio/miniconda3
-LABEL maintainer "Manuel Munoz <manuel.munoz@crg.eu>" \
-	version "1.0" \
-	description "Docker image for PyHIST"
+FROM debian:stable
 
-# Create environment and activate it upon initialization
-ADD docker/environment.yml /tmp/environment.yml
-RUN conda env create -f /tmp/environment.yml
-RUN echo "source activate $(head -1 /tmp/environment.yml | cut -d' ' -f2)" > ~/.bashrc
-ENV PATH /opt/conda/envs/$(head -1 /tmp/environment.yml | cut -d' ' -f2)/bin:$PATH
+LABEL maintainer "Manuel Muñoz <manuel.munoz@crg.eu>" \
+      version "1.0" \
+      description "Docker image for PyHIST"
 
-# Install build utilities
-RUN apt-get update --fix-missing -qq && \
-	apt-get install -y -q build-essential \
-	libmagickwand-dev \
-	libgl1-mesa-glx && \
-	conda install pixman=0.36.0
+# install needed tools
+RUN export DEBIAN_FRONTEND=noninteractive && \
+	apt-get update --fix-missing -qq && \
+	apt-get install -y -q \
+	build-essential \
+	libgl1-mesa-glx \
+	python3.6 \
+	python3-pip \
+	openslide-tools \
+	python3-openslide
+
+RUN pip3 install pandas opencv-python
 
 # Copy script
 WORKDIR /pyhist
 COPY pyhist* /pyhist/
 ADD src /pyhist/src
-
-# Compile segmentation binary
-RUN cd src/graph_segmentation/ && \
-	make
