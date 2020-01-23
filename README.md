@@ -57,13 +57,13 @@ cd PyHIST
 
 PyHIST has the following dependencies:
 * Python (>3.6):
-  * Openslide, pandas, numpy, PIL, cv2
+  * openslide, pandas, numpy, PIL, cv2
 * Other:
-  * libgl1-mesa-glx
+  * openslide-tools, libgl1-mesa-glx, pixman==0.36.0
 
 A `conda` environment with all the necessary Python dependencies can be created with:
 ```
-conda env create -f docker/environment.yml
+conda env create -f conda/environment.yml
 ```
 
 Compile the segmentation tool:
@@ -74,22 +74,40 @@ make
 
 ## Quickstart<a name="quickstart"></a>
 ### Using the Docker image<a name="usedocker"></a>
-Start a Docker container in interactive mode, mounting a local folder `images` inside the container: 
-
-
+PyHIST can be directly executed using Docker:
 ```shell
-docker run -it -v /path/with/svs/images/:/pyhist/images/ -v /etc/passwd:/etc/passwd pyhist
+docker run pyhist --help
+```
+
+To mount a local folder `/path_with/images/` mapping to the folder `/pyhist/images/` inside the container, use the `-v` flag specifying the absolute path of the local folder. 
+```shell
+docker run -v /path_with/images/:/pyhist/images/ pyhist [args]
+```
+
+Optionally, if you want to ensure that all the generated output files are written with permissions belonging to the current host user (instead of `root`, which is Docker's default), specify the username and group with the `-u` flag (retrieval of both can be automated with `id` ), as well mapping the `passwd` file with a second `-v` flag: 
+```shell
+docker run -v /path_with/images/:/pyhist/images/ -u $(id -u):$(id -g) -v /etc/passwd:/etc/passwd pyhist [args]
+```
+
+A working example to process an image called `test.svs` located inside `/path_with/images/`:
+```shell
+docker run -v /path_with/images/:/pyhist/images/ -u $(id -u):$(id -g) -v /etc/passwd:/etc/passwd pyhist --save-tilecrossed-image --output images/ images/test.svs
 ```
 
 ### Using PyHIST
-TODO
-
+PyHIST can be directly executed as a script. 
+To see all available options:
 ```
-python pyhist.py --content-threshold 0.05 --sigma 0.7 --patch-size 64 --mask-downsample 16 --output-downsample 16 --tilecross-downsample 64  --verbose --save-tilecrossed-image test_resources/GTEX-1117F-0125.svs
+python pyhist.py --help
+```
+
+A working example to process an image called `test.svs` located inside `/path_with/images/`:
+```
+python pyhist.py --content-threshold 0.05 --sigma 0.7 --patch-size 64 --mask-downsample 16 --output-downsample 16 --tilecross-downsample 64 --verbose --save-tilecrossed-image /path_with/images/test.svs
 ```
 
 ## Tutorial <a name="tutorial"></a>
-PyHIST's [tutorial](https://pyhist.readthedocs.io) contains examples to perform histological image segmentation, patch sampling, and explains the inner workings of the segmentation pipeline.
+PyHIST's [tutorial](https://pyhist.readthedocs.io) contains documentation explaining all available arguments and processing modes, as well as examples to perform histological image segmentation, patch sampling, and explanations of the inner workings of the segmentation pipeline.
 
 
 ## References<a name="references"></a>
