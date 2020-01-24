@@ -86,12 +86,18 @@ docker run -v /path_with/images/:/pyhist/images/ pyhist [args]
 
 Optionally, if you want to ensure that all the generated output files are written with permissions belonging to the current host user (instead of `root`, which is Docker's default), specify the username and group with the `-u` flag (retrieval of both can be automated with `id` ), as well mapping the `passwd` file with a second `-v` flag: 
 ```shell
-docker run -v /path_with/images/:/pyhist/images/ -u $(id -u):$(id -g) -v /etc/passwd:/etc/passwd pyhist [args]
+docker run -v /path_with/images/:/pyhist/images/ \
+	-u $(id -u):$(id -g) \ 
+	-v /etc/passwd:/etc/passwd \
+	pyhist [args]
 ```
 
 A working example to process an image called `test.svs` located inside `/path_with/images/`:
 ```shell
-docker run -v /path_with/images/:/pyhist/images/ -u $(id -u):$(id -g) -v /etc/passwd:/etc/passwd pyhist --save-tilecrossed-image --output images/ images/test.svs
+docker run -v /path_with/images/:/pyhist/images/ \
+	-u $(id -u):$(id -g) \
+	-v /etc/passwd:/etc/passwd \
+	pyhist --save-tilecrossed-image --output images/ images/test.svs
 ```
 
 ### Using PyHIST
@@ -103,7 +109,16 @@ python pyhist.py --help
 
 A working example to process an image called `test.svs` located inside `/path_with/images/`:
 ```
-python pyhist.py --content-threshold 0.05 --sigma 0.7 --patch-size 64 --mask-downsample 16 --output-downsample 16 --tilecross-downsample 64 --verbose --save-tilecrossed-image /path_with/images/test.svs
+python pyhist.py \
+	--content-threshold 0.05 \
+	--sigma 0.7 \
+	--patch-size 64 \
+	--mask-downsample 16 \
+	--output-downsample 16 \
+	--tilecross-downsample 64 \
+	--verbose \
+	--save-tilecrossed-image\
+	/path_with/images/test.svs
 ```
 
 ## Tutorial <a name="tutorial"></a>
