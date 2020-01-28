@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import math
 import openslide
 import cv2
 import os
@@ -33,27 +32,31 @@ def run(sample_id, img_outpath, args):
 
         return output
 
-    def bg_color_identifier(mask, lines, borders, corners):
+    def bg_color_identifier(mask, lines_pct, borders, corners):
         '''
         Identifies the background color
         '''
         bord = np.empty((1, 3))
 
+        # Transform image percentages into number of lines
+        lines_topbottom = round(mask.shape[0] * (lines_pct/100))
+        lines_leftright = round(mask.shape[1] * (lines_pct/100))
+                
         if borders != '0000':
             if borders[0] == '1':
-                top = mask[:lines, :, :]
+                top = mask[:lines_topbottom, :, :]
                 a = np.unique(top.reshape(-1, top.shape[2]), axis=0)
                 bord = np.concatenate((bord, a), axis=0)
             if borders[2] == '1':
-                bottom = mask[(mask.shape[0] - lines):mask.shape[0], :, :]
+                bottom = mask[(mask.shape[0] - lines_topbottom):mask.shape[0], :, :]
                 c = np.unique(bottom.reshape(-1, bottom.shape[2]), axis=0)
                 bord = np.concatenate((bord, c), axis=0)
             if borders[1] == '1':
-                left = mask[:, :lines, :]
+                left = mask[:, :lines_leftright, :]
                 b = np.unique(left.reshape(-1, left.shape[2]), axis=0)
                 bord = np.concatenate((bord, b), axis=0)
             if borders[3] == '1':
-                right = mask[:, (mask.shape[1] - lines):mask.shape[1], :]
+                right = mask[:, (mask.shape[1] - lines_leftright):mask.shape[1], :]
                 d = np.unique(right.reshape(-1, right.shape[2]), axis=0)
                 bord = np.concatenate((bord, d), axis=0)
 
@@ -63,24 +66,24 @@ def run(sample_id, img_outpath, args):
 
         if corners != '0000':
             if corners[0] == '1':
-                top_left = mask[:lines, :lines, :]
+                top_left = mask[:lines_topbottom, :lines_leftright, :]
                 a = np.unique(top_left.reshape(-1, top_left.shape[2]), axis=0)
                 bord = np.concatenate((bord, a), axis=0)
             if corners[1] == '1':
                 bottom_left = mask[(mask.shape[0] -
-                                    lines):mask.shape[0], :lines, :]
+                                    lines_topbottom):mask.shape[0], :lines_leftright, :]
                 b = np.unique(bottom_left.reshape(-1, bottom_left.shape[2]),
                               axis=0)
                 bord = np.concatenate((bord, b), axis=0)
             if corners[2] == '1':
-                bottom_right = mask[(mask.shape[0] - lines):mask.shape[0], (
-                    mask.shape[1] - lines):mask.shape[1], :]
+                bottom_right = mask[(mask.shape[0] - lines_topbottom):mask.shape[0], (
+                    mask.shape[1] - lines_leftright):mask.shape[1], :]
                 c = np.unique(bottom_right.reshape(-1, bottom_right.shape[2]),
                               axis=0)
                 bord = np.concatenate((bord, c), axis=0)
             if corners[3] == '1':
-                top_right = mask[:lines, (mask.shape[1] -
-                                          lines):mask.shape[1], :]
+                top_right = mask[:lines_topbottom, (mask.shape[1] -
+                                                    lines_leftright):mask.shape[1], :]
                 d = np.unique(top_right.reshape(-1, top_right.shape[2]),
                               axis=0)
                 bord = np.concatenate((bord, d), axis=0)
@@ -98,7 +101,7 @@ def run(sample_id, img_outpath, args):
 
     # Identify background colors from the mask
     bg_color, bord = bg_color_identifier(mask,
-                                         args.lines,
+                                         args.pct_bc,
                                          args.borders,
                                          args.corners)
 

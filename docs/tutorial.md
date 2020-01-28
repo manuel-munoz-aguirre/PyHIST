@@ -1,11 +1,16 @@
 # How does PyHIST work?
 PyHIST works with Aperio SVS files. From an input SVS image (1), it first produces a version of the image that highlights tissue edges using a Canny edge detector (2). Then, a [graph segmentation](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf) algorithm is executed over it in order to generate a mask of the image regions with tissue content, i.e. differentiating the background (contiguous color region) from the foreground (different colors) (3). Finally, the original image is divided into patches and these are written to disk together with a log file indicating which tile coordinates (0-based indexing) contain tissue content.
 
-![how_pyhist_works](resources/how_pyhist_works.png)
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="how_pyhist_works"></img>
+</div>
 
 With PyHIST, images can be downsampled in multiples of 2 at different stages of the process: when the mask is downsampled, the segmentation process is faster since it is executed at a lower resolution. The overview image can also be downsampled: since it is used as a sanity check of the segmentation process, it is usually not necessary to keep a large version. Finally, the output image can also be downsampled: depending on the application, it may be sufficient to work with a lower resolution version of the original image. Patch extraction can also be done over the downsampled version of the image. 
 
-![downsamples](resources/downsamples.png)
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/downsamples.png" alt="downsamples"></img>
+</div>
+
 
 # Creating patches from an histological image
 We will work with a skin image from the [GTEx Histological Images resource](https://brd.nci.nih.gov/brd/image-search/search_specimen/). Download the sample with: 
@@ -27,7 +32,10 @@ Let's assume that we want to extract patches of size 64x64 at a downsampled reso
 	python pyhist.py --patch-size 64 --output-downsample 16 --test-mode GTEX-1117F-0126.svs
 	eog output/GTEX-1117F-0126/test_GTEX-1117F-0126.png
 
-![GTEx mask test](resources/test_GTEX-1117F-0126.png)
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/test_GTEX-1117F-0126.png" alt="GTEx_mask_test"></img>
+</div>
+<br>
 
 Once we verify the tiling and masking, we proceed to extract the patches using the `--save-patches` flag. To save an overview image of the patches that were selected, add the `--save-tilecrossed-image` flag. To see details of the mask generation and patch extraction, use the `--verbose` flag.
 
@@ -73,7 +81,9 @@ Elapsed time: 19.665995597839355
 ```
 
 The generated overview image `output/GTEX-1117F-0126/tilecrossed_GTEX-1117F-0126.png` is below. The blue crosses mark the patches that are selected as containing tissue content.
-![GTEx tilecrossed](resources/tilecrossed_GTEX-1117F-0126.png)
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/tilecrossed_GTEX-1117F-0126.png" alt="GTEx_tilecrossed"></img>
+</div>
 
 Depending on the application, we may want to be more (or less) strict on the amount of tissue we want to keep. To control this, we can use the `--content-threshold` flag, which is the minimal amount of tissue required (bounded to [0, 1] where 0 is no tissue content, and 1 is completely filled with tissue). To keep the edges of the tissue fragments in this sample skin image, we can set this flag as:
 
@@ -87,5 +97,10 @@ python pyhist.py --patch-size 64 \
 ```
 
 # Parameter tuning
-Sigma, borders
+PyHIST has some auxiliary tuning parameters that can be modified to change how the segmentation is performed. Here we show a the effect of tweaking a few important parameters: borders and corners. PyHIST checks either: a) the four borders (default) or b) the four corners of the image to aid in the determination of the foreground color. But sometimes, there is tissue content in the border. In this case, we simply override the check for the offending side.
 
+
+
+
+
+For the complete list, refer to the [parameters](parameters.md) page.

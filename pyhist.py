@@ -39,9 +39,15 @@ def check_arguments(args):
     # Content threshold
     if args.thres > 1 or args.thres < 0:
         print("CONTENT_THRESHOLD should be a floating point number"
-              "between 0 and 1! Exiting.")
+              "between 0 and 1. Exiting.")
         sys.exit(1)
 
+    # Percentage for border checking
+    if args.pct_bc < 0 or args.pct_bc > 100:
+        print("PERCENTAGE_BC should be an integer number"
+              "between 0 and 100. Exiting.")
+        sys.exit(1)
+                
     # Check if the mask downsampling factor is a power of two
     if not utility_functions.isPowerOfTwo(args.output_downsample):
         print("Downsampling factor for output image must be a power of two.")

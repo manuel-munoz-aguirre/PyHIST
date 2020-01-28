@@ -1,42 +1,9 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
 import itertools as it
 
-# TODO: Move this text elsewhere:
-# '''
-#     HistologySegment implements a semi-automatic pipeline to segment tissue slices
-#     from the background in high resolution whole-slde histopathological images and
-#     extracts patches of tissue segments from the full resolution image.
-
-#     Whole slide histological images are very large in terms of size, making it
-#     difficult for computational pipelines to process them as single units, thus,
-#     they have to be divided into patches. Moreover, a significant portion of each
-#     image is background, which should be excluded from downstream analyses.
-
-#     In order to efficiently segment tissue content from each image, HistologySegment
-#     utilizes a Canny edge detector and a graph-based segmentation method. A lower
-#     resolution version of the image, extracted from the whole slide image file,
-#     is segmented. The background is defined as the segments that can be found at the
-#     borders or corners of the image (for more details check -b and -c arguments
-#     documentation). Finally, patches are extracted from the full size image ,while
-#     the corresponding patches are checked in the segmented image. Patches with a
-#     "tissue content" greater than a threshold value (-t) are selected.
-
-#     Moreover, segment_hist can function in test mode. This could assist the user in
-#     setting the appropriate parameters for the pipeline. In test mode, segment_hist
-#     will output the segmented version of the input image with scales indicating
-#     the number of rows and columns. In that image the background should be separate
-#     from the tissue pieces for the pipeline to work properly.
-#     '''
-#     REFERENCES
-#     ----------
-#     Felzenszwalb, P.F., & Huttenlocher, D.P. (2004). Efficient Graph-Based Image
-#     Segmentation. International Journal of Computer Vision, 59, 167-181.
-
-
 description_str = '''
-    HistologySegment is a semi-automatic pipeline to produce image patches from
-a high resolution histopathological image, either from the complete image or isolating
-only the tissue in the foreground from the background.
+    PyHIST a semi-automatic pipeline to produce patches from
+a high resolution histopathological image.
 '''
 
 epilog_str = '''
@@ -164,12 +131,12 @@ def build_parser():
         default='1111',
         help='''
         A four digit string. Each digit represents a border of the image in the
-        following order: left, bottom, right, top. If the digit is equal to 1 and
-        not 0, then the corresponding border will be taken into account to define
-        background. For instance, with -b 1010 the algorithm will look at the left
+        following order: left, bottom, right, top. If the digit is 1, then the 
+        corresponding border will be taken into account to define
+        background. For instance, with 1010 the algorithm will look at the left
         and right borders of the segmented image, in a window of width defined by
         the -n argument, and every segment identified will be set as background.
-        If this argument is not equal to 0000, then -c should be 0000.
+        If this argument is different from 0000, then --corners should be 0000.
         Default value is 1111.''',
         choices=combs)
 
@@ -184,8 +151,8 @@ def build_parser():
         into account to define background. For instane, with -c 0101 the algorithm
         will look at the bottom_left and top_right corners of the segmented image,
         in a square window of size given by the -n argument, and every segment
-        identified will be set as background. If this argument is not equal to 0000,
-        then -b should be 0000. Default value is 0000.''',
+        identified will be set as background. If this argument is different from 0000,
+        then --borders should be 0000. Default value is 0000.''',
         choices=combs)
 
     group_segmentation.add_argument(
@@ -210,14 +177,14 @@ def build_parser():
         Default value is 10000.''')
 
     group_segmentation.add_argument(
-        '--number-of-lines',
+        '--percentage-bc',
         type=int,
-        default=100,
-        help='''Integer indicating the number of lines from the borders or the corners of
-        the segmented image that the algorithm should take into account to define
-        background. Default value is 100.''',
-        metavar='NUMBER_OF_LINES',
-        dest='lines')
+        default=5,
+        help='''Integer [0-100] indicating the percentage of the image (width
+        and height) that will be considered as border/corner in order to define
+        the background. Default value is 5.''',
+        metavar='PERCENTAGE_BC',
+        dest='pct_bc')
 
     group_segmentation.add_argument(
         '--sigma',
