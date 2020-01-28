@@ -29,6 +29,11 @@ def check_compilation():
 
 def check_arguments(args):
 
+    # File format
+    if args.format.lower().strip() not in ["png", "jpg"]:
+        print("Format has to be either png or jpg. Exiting.")
+        sys.exit(1)
+    
     # Borders and Corners
     if (args.borders == '0000'
             and args.corners == '0000') or (args.borders != '0000'

@@ -7,31 +7,9 @@ a high resolution histopathological image.
 '''
 
 epilog_str = '''
-    EXAMPLES
+    Examples
     --------
-
-    Keep segmented image, save patches, produce a thumbnail with marked the
-    selected patches, use a content threshold of 0.1 for patch selection.
-
-    segment_hist -pfxt 0.1 input_image
-
-    segment_hist -p -f -x -t 0.1 input_image
-
-    Do not save patches, produce thumbnail, use different than the default values
-    for k and m parameters.
-
-    segment_hist -xk 10000 -m 1000 input_image
-
-    Do not save patches, produce thumbnail, use a content threshold of 0.1 for
-    patch selection, for background identification use bottom_left and top_right
-    corners.
-
-    segment_hist -xt 0.1 -b 0000 -c 0101 input_image
-
-    Function in test mode, use different than the default values for k and m
-    parameters.
-
-    segment_hist --test -k 1000 -m 1000 input_image
+    TODO
     '''
 
 
@@ -62,6 +40,12 @@ def build_parser():
         default=512,
         help='''Integer indicating the size of the produced patches. A value of D
         will produce patches of size D x D. Default value is 512.''')
+    group_exec.add_argument(
+        "--format",
+        help='Format ("png" or "jpg") to save the patches.',
+        type=str,
+        default="png",
+        metavar="FORMAT")
     group_exec.add_argument(
         "--verbose",
         help='Print status messages at each step of the pipeline.',
@@ -132,12 +116,13 @@ def build_parser():
         help='''
         A four digit string. Each digit represents a border of the image in the
         following order: left, bottom, right, top. If the digit is 1, then the 
-        corresponding border will be taken into account to define
-        background. For instance, with 1010 the algorithm will look at the left
+        corresponding border will be taken into account to define background. 
+        For instance, with 1010 the algorithm will look at the left
         and right borders of the segmented image, in a window of width defined by
         the -n argument, and every segment identified will be set as background.
-        If this argument is different from 0000, then --corners should be 0000.
-        Default value is 1111.''',
+        This argument is mutually exclusive with --corners. If --borders is set 
+        to be different from 0000, then --corners must be 0000. Default value is 
+        1111.''',
         choices=combs)
 
     group_segmentation.add_argument(
@@ -146,13 +131,14 @@ def build_parser():
         default='0000',
         help='''
         A four digit string. Each digit represents a corner of the image in the
-        following order: top_left, bottom_left, bottom_right, top_right. If the
-        digit is equal to 1 and not 0, then the corresponding corner will be taken
-        into account to define background. For instane, with -c 0101 the algorithm
-        will look at the bottom_left and top_right corners of the segmented image,
-        in a square window of size given by the -n argument, and every segment
-        identified will be set as background. If this argument is different from 0000,
-        then --borders should be 0000. Default value is 0000.''',
+        following order: top left, bottom left, bottom right, top right. If the
+        digit is equal to 1, then the corresponding corner will be taken
+        into account to define background. For instance, with 0101, the
+        bottom left and top right corners of the segmented image will be considered,
+        with a square window of size given by the --percentage-bc argument, 
+        and every segment identified will be set as background. This argument is
+        mutually exclusive with --borders. If --corners is set to be different from
+        0000, then --borders must be 0000. Default value is 0000.''',
         choices=combs)
 
     group_segmentation.add_argument(

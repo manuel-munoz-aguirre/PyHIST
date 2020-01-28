@@ -32,12 +32,14 @@ Let's assume that we want to extract patches of size 64x64 at a downsampled reso
 	python pyhist.py --patch-size 64 --output-downsample 16 --test-mode GTEX-1117F-0126.svs
 	eog output/GTEX-1117F-0126/test_GTEX-1117F-0126.png
 
+<a name="testimage">
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/test_GTEX-1117F-0126.png" alt="GTEx_mask_test"></img>
 </div>
+</a>
 <br>
 
-Once we verify the tiling and masking, we proceed to extract the patches using the `--save-patches` flag. To save an overview image of the patches that were selected, add the `--save-tilecrossed-image` flag. To see details of the mask generation and patch extraction, use the `--verbose` flag.
+The faint black border that is not part of the grid is an aid for the segmentation and it is explained in the [parameter tuning](#parametertuning) section. Once we verify the tiling and masking, we proceed to extract the patches using the `--save-patches` flag. To save an overview image of the patches that were selected, add the `--save-tilecrossed-image` flag. To see details of the mask generation and patch extraction, use the `--verbose` flag.
 
 	python pyhist.py --patch-size 64 \
 	--output-downsample 16 \
@@ -95,12 +97,18 @@ python pyhist.py --patch-size 64 \
 	--save-tilecrossed-image \
 	--verbose GTEX-1117F-0126.svs
 ```
+[Explain tile saving formats]
 
-# Parameter tuning
-PyHIST has some auxiliary tuning parameters that can be modified to change how the segmentation is performed. Here we show a the effect of tweaking a few important parameters: borders and corners. PyHIST checks either: a) the four borders (default) or b) the four corners of the image to aid in the determination of the foreground color. But sometimes, there is tissue content in the border. In this case, we simply override the check for the offending side.
-
-
-
+# Random patch sampling<a name="randomsapling"></a>
+TODO
 
 
-For the complete list, refer to the [parameters](parameters.md) page.
+# Parameter tuning<a name="parametertuning"></a>
+PyHIST has some auxiliary tuning parameters that can be modified to change how the segmentation is performed. Here we show a the effect of tweaking an important parameter: *borders*. PyHIST checks either: 
+a) the four borders (default) or b) the four corners of the image to aid in the determination of the background color. For example, on the [test mode image](#testimage) shown above, everything that is outside the region enclosed by the black square is defined to be as background color. However, sometimes, there is tissue content in the border, which leads to an incorrect segmentation. In those case, we simply override checking the offending sides with the `--borders` parameter, which takes a four digit string as an argument indicating which sides need to be considered, in order of left, bottom, right, top. In the case above, to override the check for the top and right borders, we would call PyHIST with `--borders 1100`:
+
+![borders_argument](resources/borders_argument.png)
+
+The same logic applies for `--corners` parameter. The checking of borders/corners is mutually exclusive - only one can be set at a time. By default, determination of background is done using the borders.
+
+For the complete list of parameters, refer to the [parameters](parameters.md) page.

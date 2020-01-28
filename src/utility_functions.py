@@ -53,7 +53,7 @@ def produce_edges(args, out_img):
     '''
 
     print("== Step 1: Producing edge image... ==")
-    ts = time.time()
+    ts = round(time.time(), ndigits=3)
 
     # Read the image
     svs = openslide.OpenSlide(args.svs)
@@ -77,7 +77,7 @@ def produce_edges(args, out_img):
     edges = edges.convert('RGB')
     edges.save(out_img, 'PPM')
     warnings.filterwarnings("default")
-    te = time.time()
+    te = round(time.time(), ndigits=3)
 
     if args.verbose:
         print("Elapsed time: " + str(te - ts))
@@ -122,7 +122,7 @@ def produce_test_image(image, out_folder, args):
     wpct = round(resized_mask.shape[1] * border_pct)
 
     # Draw top and bottom borders
-    gcol = [0, 255, 0]
+    gcol = [0, 0, 0]
     width_range = range(wpct, resized_mask.shape[1] - wpct)
     resized_mask[hpct, width_range, :] = gcol
     resized_mask[resized_mask.shape[0] - hpct, width_range, :] = gcol
@@ -151,14 +151,14 @@ def produce_segmented_image(sample_id, out_folder, args):
     '''
     print("\n== Step 2: Segmentation over the mask ==")
 
-    ts = time.time()
+    ts = round(time.time(), ndigits=3)
     bashCommand = "src/graph_segmentation/segment " + str(args.sigma) + \
         " " + str(args.k_const) + " " + str(args.minimum_segmentsize) + " " + \
         out_folder + "edges_" + sample_id + ".ppm" + " " + \
         out_folder + "segmented_" + sample_id + ".ppm"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
-    te = time.time()
+    te = round(time.time(), ndigits=3)
 
     if args.verbose:
         print("Elapsed time: " + str(te - ts))
