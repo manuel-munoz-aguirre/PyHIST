@@ -2,10 +2,11 @@
 
 PyHist usage: `pyhist.py [parameters] input_image`
 
-#### _PyHist parameters_
+### _PyHist parameters_
+* [Input image](#input)
 * [Help](#help)
 * [Test mode](#test)
-* [Input image](#input)
+* [Verbose](#verbose)
 * [Output](#output)
 * [Output Format](#format)
 * [Patch size](#p_size)
@@ -23,16 +24,27 @@ PyHist usage: `pyhist.py [parameters] input_image`
 * [Minimum segment size ](#min_ssize)
 * [Sigma factor](#sigma)
 * [Content threshold](#thres)
-* [Verbose](#verbose)
 
 ---
 
-## Help<a name="help"></a>
+## Positional
+
+### Input image<a name="input"></a>
+`input_image`
+
+The input image to be segmented. It has to be an svs file.
+
+## Optional
+
+### Help<a name="help"></a>
 `-h, --help`
 
 Print the help page and exit.
 
-## Test mode<a name="test"></a>
+
+## Execution
+
+### Test mode<a name="test"></a>
 `--test-mode`
 
 Function in test mode. This will produce a segmented image of the
@@ -42,31 +54,34 @@ consideration for the background identification will also be
 illustrated. Test mode is extremely useful for tuning the different
 parameters of the pipeline, as well as for troubleshooting.
 
-## Input image<a name="input"></a>
-`input_image`
+### Verbose<a name="verbose"></a>
+`--verbose`
 
-The input image to be segmented. It has to be an svs file.
+Print status messages at each step of the pipeline. By default, PyHist
+will not do this.
 
-## Output<a name="output"></a>
+## Output
+
+### Output<a name="output"></a>
 `--output OUTPUT`
 
 Path of a folder, in which the output is going to be saved. The 
 default is `./output/`.
 
-## Output Format<a name="format"></a>
+### Output Format<a name="format"></a>
 `--format FORMAT`
 
 A character string indicating the format of the produced patches. It
 could take the values png or jpg. The default value is png.
 
-## Patch size<a name="p_size"></a>
+### Patch size<a name="p_size"></a>
 `--patch-size PATCH_SIZE`
 
 The desired size of the patches produced by the pipeline. The output patches will be square.
 Hence, PATCH_SIZE should be an integer indicating the number of pixels of the width (or height)
 of each patch. A value of D will produce patches of size D x D. The default value is 512.
 
-## Save a tilecrossed image<a name="save_tc"></a>
+### Save a tilecrossed image<a name="save_tc"></a>
 `--save-tilecrossed-image`
 
 Produce a downsized version of the input image, in which the poduced patches are indicated with 
@@ -74,7 +89,7 @@ a red grid. The selected patches, that passed the "tissue content" filtering are
 with an overlayed blue cross. By default, PyHist is not going to 
 create this image.
 
-## Save edges<a name="save_e"></a>
+### Save edges<a name="save_e"></a>
 `--save-edges`
 
 Keep the image produced by the Canny edge detector. This is a downsized version of the input 
@@ -82,40 +97,44 @@ image that highlights the edges of objects inside the image. By default PyHist w
 this image.
 
 
-## Save mask<a name="save_m"></a>
+### Save mask<a name="save_m"></a>
 `--save-mask`
 
 Keep the mask image. This is a downsized version of the input image containing the result of the
 segmentation process. Each segment is indicated with a discrete colour. By default PyHist will 
 not keep this image.
 
-## Save patches<a name="save_p"></a>
+### Save patches<a name="save_p"></a>
 `--save-patches`
 
 Save the patches of the original image that passed the "tissue content" filtering. By default
 PyHist will not save them.
 
-## Output  downsample<a name="down_o"></a>
+## Downsampling
+
+### Output  downsample<a name="down_o"></a>
 `--output-downsample OUTPUT_DOWNSAMPLE`
 
 This is an integer indicating the downsampling of the original image
 before dividing it into patches.
 It must be a power of 2. The default value is 16.
 
-## Mask downsample<a name="down_m"></a>
+### Mask downsample<a name="down_m"></a>
 `--mask-downsample MASK_DOWNSAMPLE`
 
-This is an integer indicating the downsampling of the input before
-the generation of mask. It must be a power of 2. The default value is
+This is an integer indicating the downsampling of the input before edge detection and
+generation of the mask. It must be a power of 2. The default value is
 16.
 
-## Tilecrossed image downsample<a name="down_tc"></a>
+### Tilecrossed image downsample<a name="down_tc"></a>
 `--tilecross-downsample TILECROSS_DOWNSAMPLE`
 
 This is an integer indicating the downsampling of the tile-crossed
 image. It must be a power of 2. The default value is 16.
 
-## Borders<a name="borders"></a>
+## Segmentation
+
+### Borders<a name="borders"></a>
 `--borders 1111`
 
 A four digit binary number. Each digit represents a border of the 
@@ -128,7 +147,7 @@ identified will be set as background. This argument is mutually
 exclusive with --corners. If --borders is set to be different from
 0000, then --corners must be 0000. The default value is 1111.
 
-## Corners<a name="corners"></a>
+### Corners<a name="corners"></a>
 `--corners 0000`
 
 A four digit binary number. Each digit represents a corner of the image in the
@@ -141,47 +160,44 @@ and every segment identified will be set as background. This argument is
 mutually exclusive with --borders. If --corners is set to be different from
 0000, then --borders must be 0000. The default value is 0000.
 
-## Percentage of the image - background definition<a name="perc"></a>
+### Percentage of the image - background definition<a name="perc"></a>
 `--percentage-bc PERCENTAGE_BC`
 
 This is an Interger ranging from 0 to 100. Indicates the percentage
 (applied to width and height) of the image that will be taken under
 consideration for the definition of the background.
 
-## K constant<a name="k_const"></a>
+### K constant<a name="k_const"></a>
 `--k-const K_CONST`
 
 An integer constant required by the segmentation algorithm.
 Needed for the threshold function. The threshold function controls the
 degree to which the difference between two segments must be greater than
 their internal differences in order for them not to be merged. Lower values
-result in finer segmentation. Larger images require higher values.
+result in finer segmentation. Larger images require higher values. Hence, in case the user
+change the downsampling factor for the mask, might need to adjust this as well.
 The default value is 10000.
 
-## Minimum segment size<a name="min_ssize"></a>
+### Minimum segment size<a name="min_ssize"></a>
 `--minimum_segmentsize MINIMUM_SEGMENTSIZE`
 
 An integer required by the segmentation algorithm.
 It is the minimum segment size enforced by post-processing.
-Larger images require higher values.
+Larger images require higher values. Hence, in case the user
+change the downsampling factor for the mask, might need to adjust this as well.
 The default value is 10000.
 
-## Sigma factor<a name="sigma"></a>
+### Sigma factor<a name="sigma"></a>
 `--sigma SIGMA`
 
 A parameter required by the segmentation algorithm.
 It is used to smooth the input image before segmenting it.
 The default value is 0.5.
 
-## Content threshold<a name="thres"></a>
+### Content threshold<a name="thres"></a>
 `--content-threshold CONTENT_THRESHOLD`
 
 A threshold parameter ranging from 0 to 1. It indicates the
 proportion of a patch's content that should not be covered by background
 in order to be selected. The default value is 0.5.
 
-## Verbose<a name="verbose"></a>
-`--verbose`
-
-Print status messages at each step of the pipeline. By default, PyHist
-will not do this.
