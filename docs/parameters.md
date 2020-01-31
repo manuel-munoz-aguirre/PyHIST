@@ -50,9 +50,11 @@ Print the help page and exit.
 Function in test mode. This will produce a segmented image of the
 input with an overlayed grid that indicates the division of the image
 into patches. Moreover, the area of the image that is taken under 
-consideration for the background identification will also be
-illustrated. Test mode is extremely useful for tuning the different
+consideration for the background identification will be
+illustrated. PyHIST will also keep the output of edge detection and segmentation processes,
+when ruuning in test mode. Test mode is extremely useful for tuning the different
 parameters of the pipeline, as well as for troubleshooting.
+
 
 ### Verbose<a name="verbose"></a>
 `--verbose`
@@ -66,7 +68,7 @@ will not do this.
 `--output OUTPUT`
 
 Path of a folder, in which the output is going to be saved. The 
-default is `./output/`.
+default value is `output/`.
 
 ### Output Format<a name="format"></a>
 `--format FORMAT`
