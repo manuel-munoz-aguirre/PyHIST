@@ -1,8 +1,8 @@
 # Parameter documentation
 
-PyHist usage: `pyhist.py [parameters] input_image`
+PyHIST usage: `pyhist.py [parameters] input_image`
 
-### _PyHist parameters_
+### _PyHIST parameters_
 * [Input image](#input)
 * [Help](#help)
 * [Test mode](#test)
@@ -59,7 +59,7 @@ parameters of the pipeline, as well as for troubleshooting.
 ### Verbose<a name="verbose"></a>
 `--verbose`
 
-Print status messages at each step of the pipeline. By default, PyHist
+Print status messages at each step of the pipeline. By default, PyHIST
 will not do this.
 
 ## Output
@@ -88,14 +88,14 @@ of each patch. A value of D will produce patches of size D x D. The default valu
 
 Produce a downsized version of the input image, in which the poduced patches are indicated with 
 a red grid. The selected patches, that passed the "tissue content" filtering are highlighted 
-with an overlayed blue cross. By default, PyHist is not going to 
+with an overlayed blue cross. By default, PyHIST is not going to 
 create this image.
 
 ### Save edges<a name="save_e"></a>
 `--save-edges`
 
 Keep the image produced by the Canny edge detector. This is a downsized version of the input 
-image that highlights the edges of objects inside the image. By default PyHist will not keep 
+image that highlights the edges of objects inside the image. By default PyHIST will not keep 
 this image.
 
 
@@ -103,14 +103,14 @@ this image.
 `--save-mask`
 
 Keep the mask image. This is a downsized version of the input image containing the result of the
-segmentation process. Each segment is indicated with a discrete colour. By default PyHist will 
+segmentation process. Each segment is indicated with a discrete colour. By default PyHIST will 
 not keep this image.
 
 ### Save patches<a name="save_p"></a>
 `--save-patches`
 
 Save the patches of the original image that passed the "tissue content" filtering. By default
-PyHist will not save them.
+PyHIST will not save them.
 
 ## Downsampling
 
@@ -167,7 +167,7 @@ mutually exclusive with --borders. If --corners is set to be different from
 
 This is an Interger ranging from 0 to 100. Indicates the percentage
 (applied to width and height) of the image that will be taken under
-consideration for the definition of the background.
+consideration for the definition of the background. The default value is 5.
 
 ### K constant<a name="k_const"></a>
 `--k-const K_CONST`
