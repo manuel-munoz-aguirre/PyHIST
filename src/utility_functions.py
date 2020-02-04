@@ -7,7 +7,7 @@ import subprocess
 import sys
 import time
 import math
-
+import random
 
 def downsample_image(svs, downsampling_factor, mode="numpy"):
     '''
@@ -168,5 +168,55 @@ def produce_segmented_image(sample_id, out_folder, args):
         sys.exit(1)
 
 
+def randomSampler(args, img_outpath):
+
+    # Read image and mask
+    svsimg = openslide.OpenSlide(args.svs)
+    n_samples = args.npatches
+    patch_size = args.patch_size
+    output_downsample = args.output_downsample
+    
+    # Find best layer for downsampling
+    level0_dimensions = svsimg.dimensions
+
+    # At the optimal downsampling level, we need to calculate
+    # a correction factor for the patch size
+    level = svsimg.get_best_level_for_downsample(output_downsample + 0.1)
+    bestlevel_downsample = svsimg.level_downsamples[level]
+    bestlevel_patchsize = int(round(output_downsample/bestlevel_downsample, ndigits = 1)*patch_size)
+
+    # Calculate boundary pixel (top left pixel in
+    # lower right corner) at the best level for downsampling
+    boundary_pixel = [x - bestlevel_patchsize for x in svsimg.level_dimensions[level]]
+
+    # Subsample pixels at level 0
+    pixel_pairs = zip(random.sample(range(0, boundary_pixel[0]), n_samples),
+                      random.sample(range(0, boundary_pixel[1]), n_samples))
+
+    # The specified patch_size is at output_downsample level.
+    # Need to calculate the patch size at level 0
+    upsample_patchsize = patch_size * output_downsample 
+    upscale_factor = round(bestlevel_downsample, ndigits = 1)
+
+    # Start patch extraction
+    digits_padding = 6
+    k = 0
+    for w, h in list(pixel_pairs):
+        w_upscale, h_upscale = int(w*upscale_factor), int(h*upscale_factor)
+        img = svsimg.read_region((w_upscale, h_upscale),
+                                 level,
+                                 (bestlevel_patchsize, bestlevel_patchsize))
+
+        # Resize if necessary. This condition will be true
+        # when downsampling is not required.
+        if bestlevel_patchsize != patch_size:
+            img = img.resize((patch_size, patch_size))
+
+        # Save patch
+        img.save(img_outpath +
+                 str((k)).rjust(digits_padding, '0') + "." + args.format)
+        k += 1
+
+        
 def isPowerOfTwo(n):
     return math.ceil(math.log2(n)) == math.floor(math.log2(n))

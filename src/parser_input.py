@@ -9,7 +9,7 @@ a high resolution histopathological image.
 epilog_str = '''
     Examples
     --------
-    TODO
+    See the documentation at https://pyhist.readthedocs.io/
     '''
 
 
@@ -42,10 +42,9 @@ def build_parser():
         will produce patches of size D x D. Default value is 512.''')
     group_exec.add_argument(
         "--format",
-        help='Format ("png" or "jpg") to save the patches.',
-        type=str,
-        default="png",
-        metavar="FORMAT")
+        help='Format to save the patches.',
+        choices=["png", "jpg"],
+        default="png")
     group_exec.add_argument(
         "--verbose",
         help='Print status messages at each step of the pipeline.',
@@ -53,9 +52,19 @@ def build_parser():
         default=False)
     group_exec.add_argument(
         '--test-mode',
-        help='Function in test mode',
+        help='Trigger test mode for image mask and tile debugging.',
         action='store_true',
         default=False)
+    group_exec.add_argument(
+        '--sampling',
+        help='Random patch sampling mode.',
+        action='store_true',
+        default=False)
+    group_exec.add_argument(
+        '--npatches',
+        help='Number of patches to extract in random sampling mode.',
+        type=int,
+        default=100)
 
     # Optional argument group: output
     group_output = parser.add_argument_group('output')

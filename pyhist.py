@@ -97,33 +97,38 @@ def main():
     if not os.path.exists(img_outpath):
         os.makedirs(img_outpath)
 
-    # Produce edge image
-    utility_functions.produce_edges(args,
-                                    img_outpath + "edges_" + sample_id +
-                                    ".ppm")
+    # Do random sampling if requested, otherwise
+    # run the normal pipeline
+    if args.sampling:
+        utility_functions.randomSampler(args, img_outpath)
+    else:
+        # Produce edge image
+        utility_functions.produce_edges(args,
+                                        img_outpath + "edges_" + sample_id +
+                                        ".ppm")
 
-    # Run the segmentation algorithm
-    utility_functions.produce_segmented_image(sample_id,
-                                              img_outpath,
-                                              args)
+        # Run the segmentation algorithm
+        utility_functions.produce_segmented_image(sample_id,
+                                                  img_outpath,
+                                                  args)
 
-    # Test mode
-    if args.test_mode:
-        utility_functions.produce_test_image(sample_id,
-                                             img_outpath,
-                                             args)
-        sys.exit(0)
+        # Test mode
+        if args.test_mode:
+            utility_functions.produce_test_image(sample_id,
+                                                 img_outpath,
+                                                 args)
+            sys.exit(0)
 
-    # Generate image tiles
-    patch_selector.run(sample_id,
-                       img_outpath,
-                       args)
+        # Generate image tiles
+        patch_selector.run(sample_id,
+                           img_outpath,
+                           args)
 
-    # Delete segmented and edge images
-    if not args.save_mask:
-        os.remove(img_outpath + "segmented_" + sample_id + ".ppm")
-    if not args.save_edges:
-        os.remove(img_outpath + "edges_" + sample_id + ".ppm")
+        # Delete segmented and edge images
+        if not args.save_mask:
+            os.remove(img_outpath + "segmented_" + sample_id + ".ppm")
+        if not args.save_edges:
+            os.remove(img_outpath + "edges_" + sample_id + ".ppm")
 
 
 if __name__ == "__main__":
