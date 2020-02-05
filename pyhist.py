@@ -2,9 +2,9 @@ import os
 import platform
 import sys
 import openslide
-from src import utility_functions, patch_selector, parser_input
 import subprocess
-
+import warnings
+from src import utility_functions, patch_selector, parser_input
 
 def check_compilation():
     if not os.path.isfile("src/graph_segmentation/segment"):
@@ -28,50 +28,54 @@ def check_compilation():
 
 
 def check_arguments(args):
+      
+    if (args.borders == '0000' and args.corners == '0000') or \
+       (args.borders != '0000' and args.corners != '0000'):
+        raise ValueError("Invalid borders and corners parameters. Only one"
+                         "of either should be specified.")
 
-    # File format
-    if args.format.lower().strip() not in ["png", "jpg"]:
-        print("Format has to be either png or jpg. Exiting.")
-        sys.exit(1)
-    
-    # Borders and Corners
-    if (args.borders == '0000'
-            and args.corners == '0000') or (args.borders != '0000'
-                                            and args.corners != '0000'):
-        print("Invalid borders and corners parameters! Exiting.")
-        sys.exit(1)
-
-    # Content threshold
     if args.thres > 1 or args.thres < 0:
-        print("CONTENT_THRESHOLD should be a floating point number"
-              "between 0 and 1. Exiting.")
-        sys.exit(1)
+        raise ValueError("CONTENT_THRESHOLD should be a floating point number"
+                         "between 0 and 1.")
 
-    # Percentage for border checking
     if args.pct_bc < 0 or args.pct_bc > 100:
-        print("PERCENTAGE_BC should be an integer number"
-              "between 0 and 100. Exiting.")
-        sys.exit(1)
+        raise ValueError("PERCENTAGE_BC should be an integer number"
+                         "between 0 and 100. Exiting.")
                 
-    # Check if the mask downsampling factor is a power of two
     if not utility_functions.isPowerOfTwo(args.output_downsample):
-        print("Downsampling factor for output image must be a power of two.")
+        raise ValueError("Downsampling factor for output image must"
+                         "be a power of two.")
 
     if not utility_functions.isPowerOfTwo(args.mask_downsample):
-        print("Downsampling factor for the mask must be a power of two.")
+        raise ValueError("Downsampling factor for the mask must"
+                         "be a power of two.")
 
     if not utility_functions.isPowerOfTwo(args.tilecross_downsample):
-        print("Downsampling factor for the tilecrossed image must be a power"
-              "of two.")
-        sys.exit(1)
+        raise ValueError("Downsampling factor for the tilecrossed"
+                         "image must be a power of two.")
 
+    # If random sampling, ignore other flags
+    def simple_formatwarning(message, *args, **kwargs):
+        return str(message) + '\n'
+    warnings.formatwarning = simple_formatwarning
+
+    if args.sampling:
+        x = [args.save_edges, args.save_mask, args.save_patches,
+             args.save_tilecrossed_image, args.test_mode]
+        strs = ["--save-edges", "--save-mask", "--save-patches",
+                "--save-tilecrossed-image", "--test-mode"] 
+        
+        if sum(x) >= 1:
+            invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
+            warnings.warn("The following flags are not used in sampling mode and will"
+                          " be ignored since the image is not segmented: " +
+                          invalid_flags, RuntimeWarning)
+                
     # Check if the image can be read
     try:
         _ = openslide.OpenSlide(args.svs)
     except Exception:
-        print("Unsupported format, or file not found! Quitting.")
-        sys.exit(1)
-        
+        raise TypeError("Unsupported format, or file not found.")
 
 def main():
 
