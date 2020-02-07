@@ -53,7 +53,7 @@ def produce_edges(args, out_img):
     '''
 
     print("== Step 1: Producing edge image... ==")
-    ts = round(time.time(), ndigits=3)
+    ts = time.time()
 
     # Read the image
     svs = openslide.OpenSlide(args.svs)
@@ -77,10 +77,10 @@ def produce_edges(args, out_img):
     edges = edges.convert('RGB')
     edges.save(out_img, 'PPM')
     warnings.filterwarnings("default")
-    te = round(time.time(), ndigits=3)
+    te = time.time()
 
     if args.verbose:
-        print("Elapsed time: " + str(te - ts))
+        print("Elapsed time: " + str(round(te-ts, ndigits = 3)) + "s")
 
 
 def produce_test_image(image, out_folder, args):
@@ -100,7 +100,7 @@ def produce_test_image(image, out_folder, args):
     print("Producing test image...")
 
     # Get information about arguments and image
-    output_downsample = args.output_downsample
+    test_downsample = args.test_downsample
     patch_size = args.patch_size
     svs = openslide.OpenSlide(args.svs)
     image_dims = svs.dimensions  # (x, y)
@@ -108,8 +108,8 @@ def produce_test_image(image, out_folder, args):
     
     # Since we read an numpy array, we need to change BGR -> RGB
     mask = cv2.imread(out_folder + "segmented_" + image + ".ppm")  # (y, x)
-    resized_mask = cv2.resize(mask, (image_dims[0]//output_downsample,
-                                     image_dims[1]//output_downsample))
+    resized_mask = cv2.resize(mask, (image_dims[0]//test_downsample,
+                                     image_dims[1]//test_downsample))
 
     # Draw a grid over the image
     x_shift, y_shift = patch_size, patch_size
@@ -151,17 +151,17 @@ def produce_segmented_image(sample_id, out_folder, args):
     '''
     print("\n== Step 2: Segmentation over the mask ==")
 
-    ts = round(time.time(), ndigits=3)
+    ts = time.time()
     bashCommand = "src/graph_segmentation/segment " + str(args.sigma) + \
         " " + str(args.k_const) + " " + str(args.minimum_segmentsize) + " " + \
         out_folder + "edges_" + sample_id + ".ppm" + " " + \
         out_folder + "segmented_" + sample_id + ".ppm"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
-    te = round(time.time(), ndigits=3)
+    te = time.time()
 
     if args.verbose:
-        print("Elapsed time: " + str(te - ts))
+        print("Elapsed time: " + str(round(te-ts, ndigits = 3)) + "s")
 
     if error is not None:
         print(error)

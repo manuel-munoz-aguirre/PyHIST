@@ -43,7 +43,7 @@ def check_arguments(args):
     if args.pct_bc < 0 or args.pct_bc > 100:
         raise ValueError("PERCENTAGE_BC should be an integer number"
                          "between 0 and 100. Exiting.")
-                
+    
     if not utility_functions.isPowerOfTwo(args.output_downsample):
         raise ValueError("Downsampling factor for output image must"
                          "be a power of two.")
@@ -63,14 +63,14 @@ def check_arguments(args):
 
     if args.sampling:
         x = [args.save_edges, args.save_mask, args.save_patches,
-             args.save_tilecrossed_image, args.test_mode]
+             args.save_tilecrossed_image, args.test_mode, args.exclude_blank]
         strs = ["--save-edges", "--save-mask", "--save-patches",
-                "--save-tilecrossed-image", "--test-mode"] 
+                "--save-tilecrossed-image", "--test-mode", "--exclude-blank"] 
         
         if sum(x) >= 1:
             invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
-            warnings.warn("The following flags are not used in sampling mode and will"
-                          " be ignored since the image is not segmented: " +
+            warnings.warn("The following flags and their related parameters will be"
+                          "ignored since they are not used in random sampling mode." +
                           invalid_flags, RuntimeWarning)
                 
     # Check if the image can be read
@@ -81,7 +81,7 @@ def check_arguments(args):
 
     
 def main():
-
+    
     # Read arguments
     parser = parser_input.build_parser()
     if len(sys.argv) == 1:

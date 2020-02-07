@@ -96,7 +96,7 @@ def run(sample_id, img_outpath, args):
 
     # Open mask image as BGR
     print("\n== Step 3: Selecting tiles ==")
-    ts = round(time.time(), ndigits=3)
+    ts = time.time()
     mask = cv2.imread(img_outpath + "segmented_" + sample_id + ".ppm")
 
     # Identify background colors from the mask
@@ -236,7 +236,11 @@ def run(sample_id, img_outpath, args):
             tile_cols.append(col)
 
             # Save tile
-            tile.save(out_tiles + tile_names[i] + "." + args.format)
+            if args.exclude_blank:
+                if preds[i] == 1:
+                    tile.save(out_tiles + tile_names[i] + "." + args.format)
+            else:
+                tile.save(out_tiles + tile_names[i] + "." + args.format)
 
         # Draw cross over corresponding patch section
         # on tilecrossed image
@@ -283,7 +287,7 @@ def run(sample_id, img_outpath, args):
             if args.save_tilecrossed_image:
                 tc_w = 0
                 tc_h = tc_h + tilecross_patchsize + 1
-
+          
         # Increase counter for metadata
         i += 1
 
@@ -308,5 +312,5 @@ def run(sample_id, img_outpath, args):
                                 sep="\t")
 
     # Finishing
-    te = round(time.time(), ndigits=3)
-    print("Elapsed time: " + str(te - ts))
+    te = time.time()
+    print("Elapsed time: " + str(round(te - ts, ndigits = 3)) + "s")

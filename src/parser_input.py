@@ -1,4 +1,4 @@
-from argparse import ArgumentParser, RawTextHelpFormatter
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import itertools as it
 
 description_str = '''
@@ -7,15 +7,13 @@ a high resolution histopathological image.
 '''
 
 epilog_str = '''
-    Examples
-    --------
-    See the documentation at https://pyhist.readthedocs.io/
+    Examples: See the documentation at https://pyhist.readthedocs.io/
     '''
 
 
 def build_parser():
 
-    parser = ArgumentParser(formatter_class=RawTextHelpFormatter,
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
                             description=description_str,
                             epilog=epilog_str)
 
@@ -38,8 +36,8 @@ def build_parser():
         '--patch-size',
         type=int,
         default=512,
-        help='''Integer indicating the size of the produced patches. A value of D
-        will produce patches of size D x D. Default value is 512.''')
+        help='''Integer indicating the size of the produced patches. A value of P
+        will produce patches of size P x P.''')
     group_exec.add_argument(
         "--format",
         help='Format to save the patches.',
@@ -56,12 +54,15 @@ def build_parser():
         help='Trigger test mode for image mask and tile debugging.',
         action='store_true',
         default=False)
-    group_exec.add_argument(
+
+    # Optional argument group: sampling settings
+    group_sampling = parser.add_argument_group('sampling')
+    group_sampling.add_argument(
         '--sampling',
         help='Random patch sampling mode.',
         action='store_true',
         default=False)
-    group_exec.add_argument(
+    group_sampling.add_argument(
         '--npatches',
         help='Number of patches to extract in random sampling mode.',
         type=int,
@@ -94,7 +95,12 @@ def build_parser():
         '--save-patches',
         action='store_true',
         default=False,
-        help='Save the produced patches of the full resolution image.')
+        help='Save all the produced patches of the full resolution image.')
+    group_output.add_argument(
+        '--exclude-blank',
+        action='store_true',
+        default=False,
+        help='If enabled, background patches will not be saved.')
 
     # Optional argument group: downsampling
     group_downsampling = parser.add_argument_group('downsampling')
@@ -105,18 +111,24 @@ def build_parser():
         default=16)
     group_downsampling.add_argument(
         "--mask-downsample",
-        help='''Downsampling factor to calculate image mask. A higher number
+        help='''Downsampling factor to calculate the image mask. A higher number
         will make the mask computer faster at the expense of
         segmentation quality. Must be a power of 2.''',
         type=int,
         default=16)
     group_downsampling.add_argument(
         "--tilecross-downsample",
-        help='''Downsampling factor to calculate the tile-crossed image.
+        help='''Downsampling factor to generate the tilecrossed overview image.
         Must be a power of 2.''',
         type=int,
         default=16)
-
+    group_downsampling.add_argument(
+        "--test-downsample",
+        help='''Downsampling factor to calculate the test image.
+        Must be a power of 2.''',
+        type=int,
+        default=16)
+    
     # Optional argument group: segmentation
     group_segmentation = parser.add_argument_group('segmentation')
     group_segmentation.add_argument(
@@ -178,7 +190,7 @@ def build_parser():
         default=5,
         help='''Integer [0-100] indicating the percentage of the image (width
         and height) that will be considered as border/corner in order to define
-        the background. Default value is 5.''',
+        the background.''',
         metavar='PERCENTAGE_BC',
         dest='pct_bc')
 
@@ -188,7 +200,7 @@ def build_parser():
         default=0.5,
         help='''Parameter required by the segmentation algorithm.
         Used to smooth the input image before segmenting it.
-        Default value is 0.5.''')
+        ''')
 
     group_segmentation.add_argument(
         '--content-threshold',
@@ -196,7 +208,7 @@ def build_parser():
         default=0.5,
         help='''Threshold parameter indicating the proportion of a patch content that
         should not be covered by background in order to be selected. It should
-        range between 0 and 1. Default value is 0.5.''',
+        range between 0 and 1.''',
         metavar='CONTENT_THRESHOLD',
         dest='thres')
 
