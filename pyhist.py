@@ -6,7 +6,9 @@ import subprocess
 import warnings
 from src import utility_functions, patch_selector, parser_input
 
+
 def check_compilation():
+
     if not os.path.isfile("src/graph_segmentation/segment"):
 
         # If Windows, the user must compile the script manually, otherwise
@@ -77,6 +79,7 @@ def check_arguments(args):
     except Exception:
         raise TypeError("Unsupported format, or file not found.")
 
+    
 def main():
 
     # Read arguments

@@ -138,7 +138,7 @@ def run(sample_id, img_outpath, args):
     dzg_real_downscaling = np.divide(svs.dimensions, dzg.level_dimensions)[
         :, 0][dzg_selectedlevel_idx]
     n_tiles = np.prod(dzg_selectedlevel_maxtilecoords)
-    digits_padding = 6
+    digits_padding = len(str(n_tiles))
 
     # Calculate patch size in the mask
     mask_patch_size = int(np.ceil(
@@ -229,7 +229,7 @@ def run(sample_id, img_outpath, args):
 
             # Prepare metadata
             tile_names.append(sample_id + "_" +
-                              str((i)).rjust(digits_padding, '0'))
+                              str(i).zfill(digits_padding))
             tile_dims_w.append(tile.size[0])
             tile_dims_h.append(tile.size[1])
             tile_rows.append(row)

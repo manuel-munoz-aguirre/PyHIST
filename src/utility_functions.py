@@ -199,8 +199,9 @@ def randomSampler(args, img_outpath):
     upscale_factor = round(bestlevel_downsample, ndigits = 1)
 
     # Start patch extraction
-    digits_padding = 6
+    digits_padding = len(str(n_samples))
     k = 0
+
     for w, h in list(pixel_pairs):
         w_upscale, h_upscale = int(w*upscale_factor), int(h*upscale_factor)
         img = svsimg.read_region((w_upscale, h_upscale),
@@ -213,8 +214,13 @@ def randomSampler(args, img_outpath):
             img = img.resize((patch_size, patch_size))
 
         # Save patch
-        img.save(img_outpath +
-                 str((k)).rjust(digits_padding, '0') + "." + args.format)
+        img.save(img_outpath + str(k).zfill(digits_padding) +
+                 "." + args.format)
+
+        # Print progress
+        if (k+1) % 25 == 0 and args.verbose:
+            sys.stdout.write(str(int((k+1)/n_samples*100)) + "%" + "\r")
+
         k += 1
 
         

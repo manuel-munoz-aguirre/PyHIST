@@ -2,7 +2,7 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 import itertools as it
 
 description_str = '''
-    PyHIST a semi-automatic pipeline to produce patches from
+    PyHIST is a semi-automatic pipeline to produce patches from
 a high resolution histopathological image.
 '''
 
@@ -47,7 +47,8 @@ def build_parser():
         default="png")
     group_exec.add_argument(
         "--verbose",
-        help='Print status messages at each step of the pipeline.',
+        help='Print status messages at each step of the pipeline (both for segmentation'
+        'and sampling',
         action='store_true',
         default=False)
     group_exec.add_argument(
