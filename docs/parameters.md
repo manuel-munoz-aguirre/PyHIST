@@ -7,6 +7,8 @@ PyHIST usage: `pyhist.py [parameters] input_image`
 * [Help](#help)
 * [Test mode](#test)
 * [Verbose](#verbose)
+* [Sampling](#sampling)
+* [Number of sampled patches](#npatches)
 * [Output](#output)
 * [Output Format](#format)
 * [Patch size](#p_size)
@@ -14,6 +16,7 @@ PyHIST usage: `pyhist.py [parameters] input_image`
 * [Save edges](#save_e)
 * [Save mask](#save_m)
 * [Save patces](#save_p)
+* [Exclude background patches](#exclude_bg)
 * [Output downsample](#down_o)
 * [Mask downsample](#down_m)
 * [Tilecrossed image downsample](#down_tc)
@@ -62,6 +65,20 @@ parameters of the pipeline, as well as for troubleshooting.
 Print status messages at each step of the pipeline. By default, PyHIST
 will not do this.
 
+## Random patch sampling
+
+### Sampling<a name="sampling"></a>
+`--sampling`
+
+Function in random patch sampling mode. This will output a random set of the produced patches.
+By default, PyHIST will not operate in sampling mode.
+
+### Number of sampled patches<a name="npatches"></a>
+`--npatches NPATCHES`
+
+This is an integer indicating the number of patches randomly sampled on sampling mode.
+The default value is 100.
+
 ## Output
 
 ### Output<a name="output"></a>
@@ -109,8 +126,13 @@ not keep this image.
 ### Save patches<a name="save_p"></a>
 `--save-patches`
 
-Save the patches of the original image that passed the "tissue content" filtering. By default
-PyHIST will not save them.
+Save all the produced patches from the full resolution image. By default
+PyHIST will not save any of them.
+
+### Exclude background patches<a name="exclude_bg"></a>
+`--exclude-blank`
+
+Flag enabling the elimination of the patches identified as background.
 
 ## Downsampling
 
