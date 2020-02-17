@@ -20,6 +20,7 @@ PyHIST usage: `pyhist.py [parameters] input_image`
 * [Output downsample](#down_o)
 * [Mask downsample](#down_m)
 * [Tilecrossed image downsample](#down_tc)
+* [Test image downsample](#down_test)
 * [Borders](#borders)
 * [Corners](#corners)
 * [Percentage of the image - background definition](#perc)
@@ -155,6 +156,12 @@ generation of the mask. It must be a power of 2. The default value is
 
 This is an integer indicating the downsampling of the tile-crossed
 image. It must be a power of 2. The default value is 16.
+
+### Test image downsample<a name="down_test"></a>
+`--test-downsample TEST_DOWNSAMPLE`
+
+This is an integer indicating the downsampling of the image produced
+when functioning in test mode. It must be a power of 2. The default value is 16.
 
 ## Segmentation
 
