@@ -14,7 +14,7 @@
 </a>
 </h1>
 
-[About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Tutorial](#tutorial) | [References](#references)
+[About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Documentation](#documentation) | [References](#references)
 
 ## About PyHIST<a name="about"></a>
 
@@ -121,8 +121,8 @@ python pyhist.py \
 	/path_with/images/test.svs
 ```
 
-## Tutorial <a name="tutorial"></a>
-PyHIST's [tutorial](https://pyhist.readthedocs.io) contains documentation explaining all available arguments and processing modes, as well as examples to perform histological image segmentation, patch sampling, and explanations of the inner workings of the segmentation pipeline.
+## Documentation <a name="documentation"></a>
+PyHIST's [documentation](https://pyhist.readthedocs.io/) explains in detail the installation steps and all available arguments and processing modes, as well as [tutorial](https://pyhist.readthedocs.io/en/latest/tutorial/) with examples to perform histological image segmentation, patch sampling, and explanations of the inner workings of the segmentation pipeline. An example [use case](https://pyhist.readthedocs.io/en/latest/testcase/) over The Cancer Genome Atlas WSIs is also available to demonstrate how to use PyHIST to prepare data for a machine learning application.
 
 
 ## References<a name="references"></a>
