@@ -105,6 +105,7 @@ def produce_test_image(image, out_folder, args):
     svs = openslide.OpenSlide(args.svs)
     image_dims = svs.dimensions  # (x, y)
     border_pct = args.pct_bc / 100
+    border_thickness = 2
     
     # Since we read an numpy array, we need to change BGR -> RGB
     mask = cv2.imread(out_folder + "segmented_" + image + ".ppm")  # (y, x)
@@ -124,13 +125,14 @@ def produce_test_image(image, out_folder, args):
     # Draw top and bottom borders
     gcol = [0, 0, 0]
     width_range = range(wpct, resized_mask.shape[1] - wpct)
-    resized_mask[hpct, width_range, :] = gcol
-    resized_mask[resized_mask.shape[0] - hpct, width_range, :] = gcol
+    resized_mask[hpct:(hpct + border_thickness), width_range, :] = gcol
+    resized_mask[(resized_mask.shape[0] - hpct - border_thickness):(resized_mask.shape[0] - hpct),
+                 width_range, :] = gcol
 
     # Draw left and right borders
     height_range = range(hpct, resized_mask.shape[0] - hpct)
-    resized_mask[height_range, wpct, :] = gcol
-    resized_mask[height_range, resized_mask.shape[1] - wpct, :] = gcol
+    resized_mask[height_range, wpct:(wpct + border_thickness), :] = gcol
+    resized_mask[height_range, (resized_mask.shape[1] - wpct - border_thickness):(resized_mask.shape[1] - wpct), :] = gcol
     
     # The mask should have the scaling factor of the requested output image
     cv2.imwrite(out_folder + "test_" + image + ".png", resized_mask)
