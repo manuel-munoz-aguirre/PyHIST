@@ -141,7 +141,7 @@ def build_parser():
         corresponding border will be taken into account to define background. 
         For instance, with 1010 the algorithm will look at the left
         and right borders of the segmented image, in a window of width defined by
-        the -n argument, and every segment identified will be set as background.
+        the --percentage-bc argument, and every segment identified will be set as background.
         This argument is mutually exclusive with --corners. If --borders is set 
         to be different from 0000, then --corners must be 0000. Default value is 
         1111.''',
