@@ -1,6 +1,6 @@
 # PyHIST
 
-PyHIST is a **H**istological **I**mage **S**egmentation **T**ool: a lightweight semi-automatic pipeline to extract patches from SVS histopathology slides. It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks.
+PyHIST is a **H**istological **I**mage **S**egmentation **T**ool: a lightweight semi-automatic pipeline to extract tiles from SVS histopathology whole image slides. It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/workflow.png" alt="logo"></img>

@@ -1,7 +1,7 @@
 The Docker image described in the section below contains all the necessary dependencies to run PyHIST. Otherwise, to install locally, skip to the [installation](#installation) section.
 
 # PyHIST Docker image
-The public docker image for PyHIST can be downloaded from the Docker Hub:
+The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
 docker pull [TO DO]
 ```
@@ -12,7 +12,7 @@ git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
 cd PyHIST
 ```
 
-Build the docker image with the following command:
+Build the Docker image with the following command:
 ```shell
 docker build -f docker/Dockerfile -t pyhist .
 ```
