@@ -30,7 +30,7 @@ The Docker image described in the section below contains all the necessary depen
 ### PyHIST Docker image
 The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
-docker pull [TO DO]
+docker pull mmunozag/pyhist
 ```
 
 After downloading it, you can skip directly to [Quickstart: Using the Docker image](#usedocker). Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
