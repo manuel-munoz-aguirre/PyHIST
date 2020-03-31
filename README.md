@@ -18,21 +18,17 @@
 
 ## About PyHIST<a name="about"></a>
 
-PyHIST is a **H**istological **I**mage **S**egmentation **T**ool. It is a semi-automatic pipeline to segment tissue slices from the background in high resolution whole-slde histopathological images. Furthermore, it extracts patches of tissue segments from the full resolution image. 
+PyHIST is a Histological Image Segmentation Tool: a lightweight semi-automatic pipeline to extract tiles from SVS histopathology whole image slides. It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks. It generates masks for the foreground, and extract tiles from the full resolution image.
 
-Whole slide histological images are very large in terms of size, making it difficult for computational pipelines to process them as single units, thus, they have to be divided into patches. Moreover, a significant portion of each image is background, which should be excluded from downstream analyses. 
-    
-In order to efficiently segment tissue content from each image, the pipeline utilizes a Canny edge detector and a graph-based segmentation algorithm. A lower resolution version of the image, extracted from the whole slide image file, is segmented. The background is defined as the segments that can be found at the borders or corners of the image. Finally, patches are extracted from the full size image ,while the corresponding patches are checked in the segmented image. Patches with a "tissue content" greater than a threshold value are selected.
-
-Moreover, the pipeline can function in test mode. This could assist the user in setting the appropriate parameters for the pipeline. In test mode, the segmented version of the input image with scales indicating the number of rows and columns will be produced. In that image the background should be separate from the tissue pieces for the pipeline to work properly. 
-
-
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="logo" width=300></img>
+</div>
 
 ## Setup<a name="setup"></a>
 The Docker image described in the section below contains all the necessary dependencies to run PyHIST. To install locally, skip to the [installation](#installation) section.
 
 ### PyHIST Docker image
-The public docker image for PyHIST can be downloaded from the Docker Hub:
+The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
 docker pull [TO DO]
 ```
@@ -101,8 +97,7 @@ docker run -v /path_with/images/:/pyhist/images/ \
 ```
 
 ### Using PyHIST
-PyHIST can be directly executed as a script. 
-To see all available options:
+PyHIST can be directly executed as a script. To see all available options:
 ```
 python pyhist.py --help
 ```
@@ -122,8 +117,4 @@ python pyhist.py \
 ```
 
 ## Documentation <a name="documentation"></a>
-PyHIST's [documentation](https://pyhist.readthedocs.io/) explains in detail the installation steps and all available arguments and processing modes, as well as [tutorial](https://pyhist.readthedocs.io/en/latest/tutorial/) with examples to perform histological image segmentation, patch sampling, and explanations of the inner workings of the segmentation pipeline. An example [use case](https://pyhist.readthedocs.io/en/latest/testcase/) over The Cancer Genome Atlas WSIs is also available to demonstrate how to use PyHIST to prepare data for a machine learning application.
-
-
-## References<a name="references"></a>
-Felzenszwalb, P.F., & Huttenlocher, D.P. (2004). Efficient Graph-Based Image Segmentation. International Journal of Computer Vision, 59, 167-181.
+PyHIST's [documentation](https://pyhist.readthedocs.io/) explains in detail the installation steps and all available arguments and processing modes, as well as [tutorial](https://pyhist.readthedocs.io/en/latest/tutorial/) with examples to perform histological image segmentation, random tile sampling, and explanations of the steps of the segmentation pipeline. An example [use case](https://pyhist.readthedocs.io/en/latest/testcase/) with a sample of The Cancer Genome Atlas WSIs is also available to demonstrate how to use PyHIST to prepare data for a machine learning application.
