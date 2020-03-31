@@ -4,13 +4,14 @@ PyHIST works with SVS files. From an input SVS image (1), it first produces a ve
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="how_pyhist_works"></img>
 </div>
+<br>
 
 With PyHIST, images can be downsampled at factors that are powers of 2 at different stages of the process: when the mask is downsampled, the segmentation process is faster since it is executed at a lower resolution. The overview image can also be downsampled: since it is used as a sanity check of the segmentation process, it is usually not necessary to keep a large version. Finally, the output image can also be downsampled: depending on the application, it may be sufficient to work with a lower resolution version of the original image. Tile extraction can also be done over the downsampled version of the image. 
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/downsamples.png" alt="downsamples"></img>
 </div>
-
+<br>
 
 # Creating tiles from an histological image
 We will work with a skin image from the [GTEx Histological Images resource](https://brd.nci.nih.gov/brd/image-search/search_specimen/). Download the sample with: 
