@@ -63,9 +63,11 @@ def check_arguments(args):
 
     if args.sampling:
         x = [args.save_edges, args.save_mask, args.save_patches,
-             args.save_tilecrossed_image, args.test_mode, args.exclude_blank]
+             args.save_tilecrossed_image, args.test_mode, args.exclude_blank,
+             args.save_nonsquare]
         strs = ["--save-edges", "--save-mask", "--save-patches",
-                "--save-tilecrossed-image", "--test-mode", "--exclude-blank"] 
+                "--save-tilecrossed-image", "--test-mode", "--exclude-blank",
+                "--save-nonsquare"] 
         
         if sum(x) >= 1:
             invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])

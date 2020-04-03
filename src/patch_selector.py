@@ -222,11 +222,17 @@ def run(sample_id, img_outpath, args):
 
         # Predict if the tile will be kept (1) or not (0)
         preds[i] = selector(mask_tile, args.thres, bg_color)
-
+        
         # Save patches if requested
         if args.save_patches:
             tile = dzg.get_tile(dzg_selectedlevel_idx, (col, row))
 
+            # If we need square patches only, we set the prediction
+            # to zero if the tile is not square
+            if not args.save_nonsquare:
+                if tile.size[0] != tile.size[1]:
+                    preds[i] = 0
+            
             # Prepare metadata
             tile_names.append(sample_id + "_" +
                               str(i).zfill(digits_padding))
@@ -234,7 +240,7 @@ def run(sample_id, img_outpath, args):
             tile_dims_h.append(tile.size[1])
             tile_rows.append(row)
             tile_cols.append(col)
-
+            
             # Save tile
             if args.exclude_blank:
                 if preds[i] == 1:

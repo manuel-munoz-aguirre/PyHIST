@@ -2,7 +2,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import itertools as it
 
 description_str = '''
-    PyHIST is a semi-automatic pipeline to produce patches from
+    PyHIST is a semi-automatic pipeline to produce tiles from
 a high resolution histopathological image.
 '''
 
@@ -36,17 +36,17 @@ def build_parser():
         '--patch-size',
         type=int,
         default=512,
-        help='''Integer indicating the size of the produced patches. A value of P
-        will produce patches of size P x P.''')
+        help='''Integer indicating the size of the produced tiles. A value of P
+        will produce tiles of size P x P.''')
     group_exec.add_argument(
         "--format",
-        help='Format to save the patches.',
+        help='Format to save the tiles.',
         choices=["png", "jpg"],
         default="png")
     group_exec.add_argument(
         "--verbose",
-        help='Print status messages at each step of the pipeline (both for segmentation'
-        'and sampling',
+        help='''Print status messages at each step of the pipeline (both for segmentation
+        and sampling''',
         action='store_true',
         default=False)
     group_exec.add_argument(
@@ -59,12 +59,12 @@ def build_parser():
     group_sampling = parser.add_argument_group('sampling')
     group_sampling.add_argument(
         '--sampling',
-        help='Random patch sampling mode.',
+        help='Random tile sampling mode.',
         action='store_true',
         default=False)
     group_sampling.add_argument(
         '--npatches',
-        help='Number of patches to extract in random sampling mode.',
+        help='Number of tiles to extract in random sampling mode.',
         type=int,
         default=100)
 
@@ -80,7 +80,7 @@ def build_parser():
         action='store_true',
         default=False,
         help='''Produce a thumbnail of the original image, in which the
-        selected patches are marked with a cross.''')
+        selected tiles are marked with a cross.''')
     group_output.add_argument(
         '--save-edges',
         action='store_true',
@@ -95,13 +95,20 @@ def build_parser():
         '--save-patches',
         action='store_true',
         default=False,
-        help='Save all the produced patches of the full resolution image.')
+        help='Save all the produced tiles of the full resolution image.')
     group_output.add_argument(
         '--exclude-blank',
         action='store_true',
         default=False,
-        help='If enabled, background patches will not be saved.')
-
+        help='If enabled, background tiles will not be saved.')
+    group_output.add_argument(
+        '--save-nonsquare',
+        action='store_true',
+        default=False,
+        help='''By default, only square tiles are saved, discarding the regions
+        towards the edges of the WSI that do not fit a complete tile. If this
+        flag is enabled, these non-square tiles will be saved as well.''')
+    
     # Optional argument group: downsampling
     group_downsampling = parser.add_argument_group('downsampling')
     group_downsampling.add_argument(
@@ -206,8 +213,8 @@ def build_parser():
         '--content-threshold',
         type=float,
         default=0.5,
-        help='''Threshold parameter indicating the proportion of a patch content that
-        should not be covered by background in order to be selected. It should
+        help='''Threshold parameter indicating the proportion of the tile area that
+        should be foreground (tissue content) in order to be selected. It should
         range between 0 and 1.''',
         metavar='CONTENT_THRESHOLD',
         dest='thres')
