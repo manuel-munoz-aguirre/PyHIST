@@ -15,7 +15,8 @@ With PyHIST, the output tiles can be generated from a downsampled version of the
 
 # Creating tiles from an histological image
 *You can run this tutorial in Google Colab*:
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1qkpvfd3aTKmbr4YrBMnHa2fCLUv-zgB3]
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1qkpvfd3aTKmbr4YrBMnHa2fCLUv-zgB3)
 
 We will use an image of skin tissue from the [GTEx Histological Images resource](https://brd.nci.nih.gov/brd/image-search/search_specimen/). Download the sample with: 
 

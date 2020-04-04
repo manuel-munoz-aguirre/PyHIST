@@ -72,15 +72,15 @@ PyHIST has the following dependencies:
 
 ## Quickstart<a name="quickstart"></a>
 ### Using the Docker image<a name="usedocker"></a>
-PyHIST can be directly executed using Docker. Replace `<image>` by `mmunozag/pyhist` if you pulled the image from Dockerhub, or simply `pyhist` if you built the image yourself.
+PyHIST can be directly executed using Docker. Replace `<dockerimg>` by `mmunozag/pyhist` if you pulled the image from Dockerhub, or simply `pyhist` if you built the image yourself.
 
 ```shell
-docker run <image> --help
+docker run <dockerimg> --help
 ```
 
 To mount a local folder `/path_with/images/` mapping to the folder `/pyhist/images/` inside the container, use the `-v` flag specifying the absolute path of the local folder. 
 ```shell
-docker run -v /path_with/images/:/pyhist/images/ <image> [args]
+docker run -v /path_with/images/:/pyhist/images/ <dockerimg> [args]
 ```
 
 Optionally, if you want to ensure that all the generated output files are written with permissions belonging to the current host user (instead of `root`, which is Docker's default), specify the username and group with the `-u` flag (retrieval of both can be automated with `id` ), as well mapping the `passwd` file with a second `-v` flag: 
@@ -88,7 +88,7 @@ Optionally, if you want to ensure that all the generated output files are writte
 docker run -v /path_with/images/:/pyhist/images/ \
 	-u $(id -u):$(id -g) \ 
 	-v /etc/passwd:/etc/passwd \
-	<image> [args]
+	<dockerimg> [args]
 ```
 
 A working example to process an image called `test.svs` located inside `/path_with/images/`:
@@ -96,7 +96,7 @@ A working example to process an image called `test.svs` located inside `/path_wi
 docker run -v /path_with/images/:/pyhist/images/ \
 	-u $(id -u):$(id -g) \
 	-v /etc/passwd:/etc/passwd \
-	<image> --save-tilecrossed-image --output images/ images/test.svs
+	<dockerimg> --save-tilecrossed-image --output images/ images/test.svs
 ```
 
 ### Using PyHIST
