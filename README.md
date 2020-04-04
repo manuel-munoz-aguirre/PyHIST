@@ -51,12 +51,6 @@ git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
 cd PyHIST
 ```
 
-PyHIST has the following dependencies:
-* Python (>3.6):
-  * openslide, pandas, numpy, PIL, cv2
-* Other:
-  * openslide-tools, libgl1-mesa-glx, pixman==0.36.0
-
 A `conda` environment with all the necessary Python dependencies can be created with:
 ```
 conda env create -f conda/environment.yml
@@ -68,16 +62,25 @@ cd src/graph_segmentation/
 make
 ```
 
+PyHIST has the following dependencies:
+* Python (>3.6):
+  * openslide, pandas, numpy, PIL, cv2
+* Other:
+  * openslide-tools, libgl1-mesa-glx, pixman==0.36.0
+
+
+
 ## Quickstart<a name="quickstart"></a>
 ### Using the Docker image<a name="usedocker"></a>
-PyHIST can be directly executed using Docker:
+PyHIST can be directly executed using Docker. Replace `<image>` by `mmunozag/pyhist` if you pulled the image from Dockerhub, or simply `pyhist` if you built the image yourself.
+
 ```shell
-docker run pyhist --help
+docker run <image> --help
 ```
 
 To mount a local folder `/path_with/images/` mapping to the folder `/pyhist/images/` inside the container, use the `-v` flag specifying the absolute path of the local folder. 
 ```shell
-docker run -v /path_with/images/:/pyhist/images/ pyhist [args]
+docker run -v /path_with/images/:/pyhist/images/ <image> [args]
 ```
 
 Optionally, if you want to ensure that all the generated output files are written with permissions belonging to the current host user (instead of `root`, which is Docker's default), specify the username and group with the `-u` flag (retrieval of both can be automated with `id` ), as well mapping the `passwd` file with a second `-v` flag: 
@@ -85,7 +88,7 @@ Optionally, if you want to ensure that all the generated output files are writte
 docker run -v /path_with/images/:/pyhist/images/ \
 	-u $(id -u):$(id -g) \ 
 	-v /etc/passwd:/etc/passwd \
-	pyhist [args]
+	<image> [args]
 ```
 
 A working example to process an image called `test.svs` located inside `/path_with/images/`:
@@ -93,7 +96,7 @@ A working example to process an image called `test.svs` located inside `/path_wi
 docker run -v /path_with/images/:/pyhist/images/ \
 	-u $(id -u):$(id -g) \
 	-v /etc/passwd:/etc/passwd \
-	pyhist --save-tilecrossed-image --output images/ images/test.svs
+	<image> --save-tilecrossed-image --output images/ images/test.svs
 ```
 
 ### Using PyHIST

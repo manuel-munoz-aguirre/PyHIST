@@ -3,7 +3,7 @@ The Docker image described in the section below contains all the necessary depen
 # PyHIST Docker image
 The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
-docker pull [TO DO]
+docker pull mmunozag/pyhist
 ```
 
 After downloading it, you can skip directly to [Quickstart: Using the Docker image](#usedocker). Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
@@ -24,13 +24,6 @@ git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
 cd PyHIST
 ```
 
-PyHIST has the following dependencies:
-
-* Python (>3.6):
-    * openslide, pandas, numpy, PIL, cv2
-* Other:
-    * openslide-tools, libgl1-mesa-glx, pixman==0.36.0
-
 A `conda` environment with all the necessary Python dependencies can be created with:
 ```
 conda env create -f conda/environment.yml
@@ -41,3 +34,9 @@ Compile the segmentation tool:
 cd src/graph_segmentation/
 make
 ```
+
+PyHIST has the following dependencies:
+* Python (>3.6):
+  * openslide, pandas, numpy, PIL, cv2
+* Other:
+  * openslide-tools, libgl1-mesa-glx, pixman==0.36.0
