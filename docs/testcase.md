@@ -3,7 +3,11 @@ To demonstrate how PyHIST can be used to preprocess WSIs for usage in a machine 
 ## Part A: Processing the WSIs with PyHIST
 In part A, we will download the WSIs from TCGA, segment them with PyHIST, examine the output, and set up the necessary data to construct a deep learning classifier.
 
-Clone the repository if you haven't yet, and move to the `use_case` directory.
+You can run this tutorial directly on a Google Colab notebook:
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1CbnBzvumvhvkBk0xloSpooEuqqoAuAfx)
+
+Otherwise, to run it locally, clone the repository if you haven't yet, and move to the `use_case` directory.
 ```
 git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
 cd use_case
@@ -29,4 +33,3 @@ We will fit a deep learning classifier (Resnet-152) using transfer learning in o
 Using the activations from the fully connected layer of the model trained in part B, we will perform dimensionality reduction over the feature vectors from each tile in order to see how the tiles cluster together with respect by their histological features. You can run this tutorial directly on a Google Colab notebook:
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Q4HAU98gxg32okcUBU4C-Qb6g33ySuCH)
-

@@ -4,5 +4,5 @@ nav:
     - Installation: 'installation.md'
     - Tutorial: 'tutorial.md'
     - Parameters: 'parameters.md'
-    - Test case: 'testcase.md'
+    - Use case: 'testcase.md'
 theme: readthedocs
