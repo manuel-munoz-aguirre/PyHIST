@@ -6,7 +6,7 @@ The public Docker image for PyHIST can be downloaded from the Docker Hub:
 docker pull mmunozag/pyhist
 ```
 
-After downloading it, you can skip directly to [Quickstart: Using the Docker image](#usedocker). Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
+Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
 ```shell
 git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
 cd PyHIST
@@ -36,6 +36,7 @@ make
 ```
 
 PyHIST has the following dependencies:
+
 * Python (>3.6):
   * openslide, pandas, numpy, PIL, cv2
 * Other:
