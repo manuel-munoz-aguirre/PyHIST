@@ -23,7 +23,8 @@ ADD src /pyhist/src
 
 # Compile segmentation algorithm
 RUN cd src/graph_segmentation/ && \
-	make
+	make && \
+	chmod 755 segment
 
 # Entrypoing
 ENTRYPOINT ["python3", "pyhist.py"]
