@@ -14,7 +14,7 @@ With PyHIST, the output tiles can be generated from a downsampled version of the
 <br>
 
 # Creating tiles from an histological image
-*You can run this tutorial in Google Colab*:
+You can run this tutorial in Google Colab:
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1qkpvfd3aTKmbr4YrBMnHa2fCLUv-zgB3)
 
