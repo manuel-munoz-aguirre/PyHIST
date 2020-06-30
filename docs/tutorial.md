@@ -34,7 +34,7 @@ If you have `ImageMagick` installed, the image properties can be viewed with the
 
 Let's assume that we want to extract tiles of size 64x64 at a downsampled resolution of 16x. PyHIST has a test mode that allows us to verify the image masking, as well as how the image tiles will look like at the requested resolution. By default, output will be saved in a folder with the same name as the input image:
 
-	python pyhist.py --patch-size 64 --output-downsample 16 --test-mode GTEX-1117F-0126.svs
+	python pyhist.py --patch-size 64 --test-downsample 16 --test-mode GTEX-1117F-0126.svs
 	eog output/GTEX-1117F-0126/test_GTEX-1117F-0126.png
 
 <a name="testimage">
