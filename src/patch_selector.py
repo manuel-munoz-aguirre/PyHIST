@@ -201,6 +201,14 @@ def run(sample_id, img_outpath, args):
 
         print("\nSelecting patches...")
         
+    if dzgmask_maxtilecoords != dzg_selectedlevel_maxtilecoords:
+        print("Rounding error creates extra patches at the side(s) of the image.")
+        grid_coord = (min(dzgmask_maxtilecoords[0], dzg_selectedlevel_maxtilecoords[0]),
+                      min(dzgmask_maxtilecoords[1], dzg_selectedlevel_maxtilecoords[1]))
+        print("Ignoring the border. Max coordinates: " + str(grid_coord))
+    else:
+        grid_coord = dzg_selectedlevel_maxtilecoords
+    
     # Counters
     preds = [None] * n_tiles
     row, col, i = 0, 0, 0
@@ -211,7 +219,7 @@ def run(sample_id, img_outpath, args):
     tile_cols = []
 
     # Categorize tiles using the selector function
-    while row < dzg_selectedlevel_maxtilecoords[1]:
+    while row < grid_coord[1]:
 
         # Extract the tile from the mask (the last level is used
         # since the mask is already rescaled)
@@ -286,7 +294,7 @@ def run(sample_id, img_outpath, args):
         col += 1
 
         # If we reach the right edge of the image, jump to the next row
-        if col == dzg_selectedlevel_maxtilecoords[0]:
+        if col == grid_coord[0]:
             col = 0
             row += 1
 
