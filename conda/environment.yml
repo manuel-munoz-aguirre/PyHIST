@@ -1,88 +1,101 @@
 name: PyHIST
 channels:
-  - anaconda
-  - bioconda
   - conda-forge
+  - bioconda
+  - anaconda
   - defaults
 dependencies:
-  - intel-openmp
-  - libgfortran-ng
-  - mkl
-  - pandas
-  - python-dateutil
-  - pytz
-  - six
-  - gdk-pixbuf
-  - openslide
-  - openslide-python
   - blas
   - bzip2
   - ca-certificates
+  - cairo
   - certifi
   - cycler
+  - dbus
   - expat
   - ffmpeg
+  - fontconfig
+  - freeglut
+  - freetype
+  - gdk-pixbuf
   - giflib
+  - glib
   - gmp
   - gnutls
+  - gobject-introspection
   - graphite2
+  - gst-plugins-base
+  - gstreamer
   - harfbuzz
   - hdf5
+  - icu
+  - intel-openmp
   - jasper
   - jpeg
   - kiwisolver
-  - libgfortran
-  - libiconv
-  - libwebp
-  - matplotlib
-  - matplotlib-base
-  - mkl_fft
-  - mkl_random
-  - nettle
-  - numpy
-  - openblas
-  - opencv
-  - openh264
-  - openssl
-  - pyparsing
-  - pyqt
-  - python
-  - sip
-  - tornado
-  - x264
-  - cairo
-  - dbus
-  - fontconfig
-  - freetype
-  - glib
-  - gobject-introspection
-  - gst-plugins-base
-  - gstreamer
-  - icu
+  - lame
+  - lcms2
+  - ld_impl_linux-64
   - libedit
   - libffi
   - libgcc
   - libgcc-ng
+  - libgfortran
+  - libgfortran-ng
+  - libglu
+  - libiconv
   - libopenblas
+  - libopencv
+  - libopus
   - libpng
   - libstdcxx-ng
   - libtiff
   - libuuid
+  - libvpx
+  - libwebp
   - libxcb
   - libxml2
+  - lz4-c
+  - matplotlib
+  - matplotlib-base
+  - mkl
+  - mkl-service
+  - mkl_fft
+  - mkl_random
   - ncurses
+  - nettle
+  - numpy
   - numpy-base
   - olefile
+  - openblas
+  - openblas-devel
+  - opencv
+  - openh264
   - openjpeg
+  - openslide
+  - openslide-python
+  - openssl
+  - pandas
   - pcre
   - pillow
   - pip
-  - pixman==0.36.0
+  - pixman=0.36.0
+  - py-opencv
+  - pyparsing
+  - pyqt
+  - python
+  - python-dateutil
+  - pytz
   - qt
   - readline
   - setuptools
+  - sip
+  - six
   - sqlite
   - tk
+  - tornado
   - wheel
+  - x264
   - xz
   - zlib
+  - zstd
