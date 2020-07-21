@@ -1,8 +1,8 @@
 name: PyHIST
 channels:
-  - conda-forge
-  - bioconda
   - anaconda
+  - bioconda
+  - conda-forge
   - defaults
 dependencies:
   - blas
