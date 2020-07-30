@@ -1,5 +1,9 @@
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import itertools as it
+import warnings
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from src import utility_functions
+
 
 description_str = '''
     PyHIST is a semi-automatic pipeline to produce tiles from
@@ -54,14 +58,15 @@ def build_parser():
         help='Trigger test mode for image mask and tile debugging.',
         action='store_true',
         default=False)
+    group_exec.add_argument(
+        '--method',
+        help='Method to perform the segmentation',
+        choices=['randomsampling', 'graph', 'graphtestmode', 'otsu'],
+        default='graph'
+    )
 
     # Optional argument group: sampling settings
     group_sampling = parser.add_argument_group('sampling')
-    group_sampling.add_argument(
-        '--sampling',
-        help='Random tile sampling mode.',
-        action='store_true',
-        default=False)
     group_sampling.add_argument(
         '--npatches',
         help='Number of tiles to extract in random sampling mode.',
@@ -97,10 +102,10 @@ def build_parser():
         default=False,
         help='Save all the produced tiles of the full resolution image.')
     group_output.add_argument(
-        '--exclude-blank',
+        '--include-blank',
         action='store_true',
         default=False,
-        help='If enabled, background tiles will not be saved.')
+        help='If enabled, background tiles will be saved.')
     group_output.add_argument(
         '--save-nonsquare',
         action='store_true',
@@ -109,6 +114,7 @@ def build_parser():
         towards the edges of the WSI that do not fit a complete tile. If this
         flag is enabled, these non-square tiles will be saved as well.''')
     
+
     # Optional argument group: downsampling
     group_downsampling = parser.add_argument_group('downsampling')
     group_downsampling.add_argument(
@@ -135,6 +141,7 @@ def build_parser():
         Must be a power of 2.''',
         type=int,
         default=16)
+    
     
     # Optional argument group: segmentation
     group_segmentation = parser.add_argument_group('segmentation')
@@ -220,3 +227,42 @@ def build_parser():
         dest='thres')
 
     return parser
+
+
+def check_arguments(args):
+      
+    if (args.borders == '0000' and args.corners == '0000') or (args.borders != '0000' and args.corners != '0000'):
+        raise ValueError("Invalid borders and corners parameters. Only one of either should be specified.")
+
+    if args.thres > 1 or args.thres < 0:
+        raise ValueError("CONTENT_THRESHOLD should be a floating point number between 0 and 1.")
+
+    if args.pct_bc < 0 or args.pct_bc > 100:
+        raise ValueError("PERCENTAGE_BC should be an integer number between 0 and 100.")
+    
+    if not utility_functions.isPowerOfTwo(args.output_downsample):
+        raise ValueError("Downsampling factor for output image must be a power of two.")
+
+    if not utility_functions.isPowerOfTwo(args.mask_downsample):
+        raise ValueError("Downsampling factor for the mask must be a power of two.")
+
+    if not utility_functions.isPowerOfTwo(args.tilecross_downsample):
+        raise ValueError("Downsampling factor for the tilecrossed image must be a power of two.")
+
+    # If random sampling, ignore other flags
+    def simple_formatwarning(message, *args, **kwargs):
+        return str(message) + '\n'
+    warnings.formatwarning = simple_formatwarning
+
+    if args.method == "randomsampling":
+        x = [args.save_edges, args.save_mask, args.save_patches,
+             args.save_tilecrossed_image, args.test_mode, 
+             args.save_nonsquare]
+        strs = ["--save-edges", "--save-mask", "--save-patches",
+                "--save-tilecrossed-image", "--test-mode",
+                "--save-nonsquare"] 
+        
+        if sum(x) >= 1:
+            invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
+            warnings.warn('The following flags and their related parameters will be ignored' \
+                ' since they are not used in random sampling mode: ' + invalid_flags, RuntimeWarning)
