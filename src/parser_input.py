@@ -6,8 +6,7 @@ from src import utility_functions
 
 
 description_str = '''
-    PyHIST is a semi-automatic pipeline to produce tiles from
-a high resolution histopathological image.
+    PyHIST is a semi-automatic pipeline to produce tiles from a high resolution histopathological image.
 '''
 
 epilog_str = '''
@@ -35,13 +34,12 @@ def build_parser():
                         metavar='input_image')
 
     # Optional argument group: execution settings
-    group_exec = parser.add_argument_group('execution')
+    group_exec = parser.add_argument_group('Execution')
     group_exec.add_argument(
         '--patch-size',
         type=int,
         default=512,
-        help='''Integer indicating the size of the produced tiles. A value of P
-        will produce tiles of size P x P.''')
+        help='Integer indicating the size of the produced tiles. A value of P will produce tiles of size P x P.')
     group_exec.add_argument(
         "--format",
         help='Format to save the tiles.',
@@ -49,32 +47,18 @@ def build_parser():
         default="png")
     group_exec.add_argument(
         "--verbose",
-        help='''Print status messages at each step of the pipeline (both for segmentation
-        and sampling''',
-        action='store_true',
-        default=False)
-    group_exec.add_argument(
-        '--test-mode',
-        help='Trigger test mode for image mask and tile debugging.',
+        help='Print status messages at each step of the pipeline (both for segmentation and sampling.',
         action='store_true',
         default=False)
     group_exec.add_argument(
         '--method',
-        help='Method to perform the segmentation',
+        help='Method to perform the segmentation.',
         choices=['randomsampling', 'graph', 'graphtestmode', 'otsu'],
         default='graph'
     )
 
-    # Optional argument group: sampling settings
-    group_sampling = parser.add_argument_group('sampling')
-    group_sampling.add_argument(
-        '--npatches',
-        help='Number of tiles to extract in random sampling mode.',
-        type=int,
-        default=100)
-
     # Optional argument group: output
-    group_output = parser.add_argument_group('output')
+    group_output = parser.add_argument_group('Output')
     group_output.add_argument(
         '--output',
         help="Output directory",
@@ -84,8 +68,7 @@ def build_parser():
         '--save-tilecrossed-image',
         action='store_true',
         default=False,
-        help='''Produce a thumbnail of the original image, in which the
-        selected tiles are marked with a cross.''')
+        help='Produce a thumbnail of the original image, in which the selected tiles are marked with a cross.')
     group_output.add_argument(
         '--save-edges',
         action='store_true',
@@ -110,13 +93,13 @@ def build_parser():
         '--save-nonsquare',
         action='store_true',
         default=False,
-        help='''By default, only square tiles are saved, discarding the regions
+        help='''By default, only square tiles are saved, discarding the regions 
         towards the edges of the WSI that do not fit a complete tile. If this
         flag is enabled, these non-square tiles will be saved as well.''')
     
 
     # Optional argument group: downsampling
-    group_downsampling = parser.add_argument_group('downsampling')
+    group_downsampling = parser.add_argument_group('Downsampling')
     group_downsampling.add_argument(
         '--output-downsample',
         help='Downsampling factor for the output image. Must be a power of 2.',
@@ -124,27 +107,33 @@ def build_parser():
         default=16)
     group_downsampling.add_argument(
         "--mask-downsample",
-        help='''Downsampling factor to calculate the image mask. A higher number
-        will make the mask computer faster at the expense of
+        help='''Downsampling factor to calculate the image mask. A higher number will make the mask computer faster at the expense of 
         segmentation quality. Must be a power of 2.''',
         type=int,
         default=16)
     group_downsampling.add_argument(
         "--tilecross-downsample",
-        help='''Downsampling factor to generate the tilecrossed overview image.
-        Must be a power of 2.''',
+        help='''Downsampling factor to generate the tilecrossed overview image. Must be a power of 2.''',
         type=int,
         default=16)
     group_downsampling.add_argument(
         "--test-downsample",
-        help='''Downsampling factor to calculate the test image.
-        Must be a power of 2.''',
+        help='''Downsampling factor to calculate the test image. Must be a power of 2.''',
         type=int,
         default=16)
     
-    
+
+    # Optional argument group: sampling settings
+    group_sampling = parser.add_argument_group('Random sampling')
+    group_sampling.add_argument(
+        '--npatches',
+        help='Number of tiles to extract in random sampling mode.',
+        type=int,
+        default=100)
+
+
     # Optional argument group: segmentation
-    group_segmentation = parser.add_argument_group('segmentation')
+    group_segmentation = parser.add_argument_group('Graph segmentation')
     group_segmentation.add_argument(
         '--borders',
         type=str,

@@ -16,7 +16,7 @@ def main():
 
     # Checking correct arguments and compilation of segmentation algorithm
     parser_input.check_arguments(args)
-    utility_functions.check_image(args)
+    utility_functions.check_image(args.svs)
 
     # Extract tiles
     slide = PySlide(vars(args))

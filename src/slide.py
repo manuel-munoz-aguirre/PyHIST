@@ -27,6 +27,7 @@ class PySlide:
     """
 
     def __init__(self, *initial_args, **kwargs):
+        """Inits PySlide with the arguments from ArgumentParser."""
 
         # PyHIST init arguments are the slide properties
         for dictionary in initial_args:
@@ -47,7 +48,7 @@ class PySlide:
 
 
     def _create_output_folder(self):
-        
+        """Creates an output folder using the sample ID to hold the pipeline output."""
         # Ensure output folder has a trailing slash
         self.output = os.path.join(self.output, '')
 
@@ -62,6 +63,7 @@ class PySlide:
 
 
     def _create_tile_folder(self):
+        """Creates a subfolder in the output folder to hold individual tiles."""
 
         self.tile_folder = os.path.join(self.img_outpath + self.sample_id + "_tiles", '')
         if not os.path.exists(self.tile_folder):
@@ -69,14 +71,21 @@ class PySlide:
 
 
 class TileGenerator:
+    """An object to perform tile extraction.
+
+    Attributes:
+        method: The requested method to generate tiles.
+        input_slide: A PySlide object.
+    """
 
     def __init__(self, input_slide):
+        """Init using PySlide and its properties."""
         self.method = input_slide.method
         self.input_slide = input_slide
 
 
     def execute(self):
-        
+        """Executes a tile-generating process."""
         if self.method == "randomsampling":
             self.__randomsampler()
         elif self.method == "graphtestmode":
@@ -85,15 +94,15 @@ class TileGenerator:
             mask, bg_color = self.__graph()
             self.__create_tiles(mask, bg_color)
         elif self.method == "otsu":
-            raise NotImplementedError
-            #mask, bg_color = self.__otsu()
-            #self.__create_tiles(mask, bg_color)
+            mask, bg_color = self.__otsu()
+            self.__create_tiles(mask, bg_color)
         else:
-            raise Exception
+            raise NotImplementedError
 
 
     def __randomsampler(self):
-        
+        """Extracts tiles randomly from a slide. No content thresholding is performed."""
+
         print("== Step 1: Performing random tile sampling ==")
 
         # Find best layer for downsampling
@@ -148,14 +157,11 @@ class TileGenerator:
 
 
     def __graphtestmode(self):
-        '''
-        Produces an image version of the segmented PPM image overlaying the
-        grid with the selected patch size at the test downsample resolution.
-
-        Args:
-
-        Returns:
-        '''
+        """
+        Produces an image version of the segmented PPM image overlaying the grid with 
+        the selected tile size at the test_downsample resolution. Performed using 
+        Felzenswalb's efficient graph segmentation.
+        """
 
         print("== Test mode for graph segmentation ==")
         print("== Step 1: Producing edge image... ==")
@@ -202,6 +208,13 @@ class TileGenerator:
 
 
     def __graph(self):
+        """Performs Felzenszwalb's efficient graph segmentation to obtain an image mask.
+
+        Returns:
+            mask: PIL RGB image.
+            bg_color: Numpy array indicating the background color.
+        """
+
         utility_functions.check_compilation()
 
         print("== Step 1: Producing edge image... ==")
@@ -229,22 +242,49 @@ class TileGenerator:
 
 
     def __otsu(self):
-        raise NotImplementedError
+        """Performs Otsu thresholding to obtain an image mask.
+        
+        Returns:
+            mask: PIL RGB image.
+            bg_color: Numpy array indicating the background color.
+        """
+
+        # Get downsampled version of the image
+        img, bdl = utility_functions.downsample_image(self.input_slide.slide, self.input_slide.mask_downsample)
+
+        if self.input_slide.verbose:
+            print("Otsu thresholding will be performed with mask downsampling of " + str(self.input_slide.mask_downsample) + "x.")
+            print("SVS level 0 dimensions:", self.input_slide.slide.dimensions)
+            print("Using level " + str(bdl) + " to downsample.")
+            print("Downsampled size: " + str(img.shape[::-1][1:3]))
+        
+        # Reverse the image to BGR and convert to grayscale
+        img = img[:, :, ::-1]
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        
+        # Remove noise using a Gaussian filter
+        img = cv2.GaussianBlur(img, (5,5), 0)
+
+        # Otsu thresholding and mask generation
+        ret, thresh_otsu = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        # Save mask if requested
+        if self.input_slide.save_mask:
+            out_filename = self.input_slide.img_outpath + "mask_" + self.input_slide.sample_id + "." + self.input_slide.format
+            cv2.imwrite(out_filename, thresh_otsu)
+
+        # Convert to PIL
+        mask = Image.fromarray(thresh_otsu)
+        bg_color = np.array([255, 255, 255])
+
+        return mask, bg_color
 
 
     # --- Auxiliary functions ---
     def __produce_edges(self):
-        '''
-        Takes as input an image and uses the canny edge detector from OpenCV
-        library to produce an image in which the detected edges are marked.
-
-        Args:
-            args: HistologySegment input arguments.
-            out_img (str): Relative path to store the output edge image.
-
-        Returns:
-            None
-        '''
+        """
+        Detects edges of an image using cv2's Canny edge detector.
+        """
 
         ts = time.time()
 
@@ -275,16 +315,11 @@ class TileGenerator:
 
     def __segment_felzenszwalb(self):
         '''
-        Invokes a shell process to run the graph-based segmentation
-        algorithm with the PPM image containing the edges from the Canny detector.
+        Invokes a shell process to run the graph-based segmentation algorithm 
+        with a PPM image containing the edges from the Canny detector.
 
-        Args:
-            sample_id (str): Sample name (filename without extension).
-            out_folder (str): Output folder.
-            args: HistologySegment input arguments.
-
-        Returns:
-            None
+        Raises:
+            SystemError: If an error ocurred during segmentation.
         '''
         
         ts = time.time()
@@ -300,10 +335,16 @@ class TileGenerator:
             print("Elapsed time: " + str(round(te-ts, ndigits = 3)) + "s")
 
         if error is not None:
-            raise SystemError(error)
+            raise RuntimeError(error)
 
 
     def __create_tiles(self, mask, bg_color):
+        """Create tiles given a PySlide and a mask.
+        
+        Arguments:
+            mask: PIL Image containing the mask for the slide.
+            bg_color: Numpy array indicating the color used for the background in the mask.
+        """
 
         ts = time.time()
 
@@ -410,7 +451,7 @@ class TileGenerator:
             mask_tile = np.array(mask_tile)
 
             # Predict if the tile will be kept (1) or not (0)
-            preds[i] = utility_functions.selector(mask_tile, self.input_slide.thres, bg_color)
+            preds[i] = utility_functions.selector(mask_tile, self.input_slide.thres, bg_color, self.input_slide.method)
             
             # Save patches if requested
             if self.input_slide.save_patches:
@@ -497,6 +538,6 @@ class TileGenerator:
 
         if self.input_slide.verbose:
             if self.input_slide.include_blank:
-                print("Saved all " + str(patch_results_df.shape[0]) + " tiles")
+                print("Selected " + str(patch_results_df.shape[0]) + " tiles")
             else:
-                print("Saved " + str(sum(preds)) + " tiles")
+                print("Selected " + str(sum(preds)) + " tiles")
