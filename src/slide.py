@@ -1,4 +1,5 @@
 import cv2
+import logging
 import numpy as np
 import os
 import openslide
@@ -103,7 +104,7 @@ class TileGenerator:
     def __randomsampler(self):
         """Extracts tiles randomly from a slide. No content thresholding is performed."""
 
-        print("== Step 1: Performing random tile sampling ==")
+        logging.info("== Performing random tile sampling ==")
 
         # Find best layer for downsampling
         level0_dimensions = self.input_slide.slide.dimensions
@@ -150,9 +151,8 @@ class TileGenerator:
                 img.save(output_filename)
 
             # Print progress
-            if (k+1) % 25 == 0 and self.input_slide.verbose:
+            if (k+1) % 25 == 0 and self.input_slide.info != "silent":
                 sys.stdout.write(str(int((k+1)/self.input_slide.npatches*100)) + "%" + "\r")
-
             k += 1
 
 
@@ -163,11 +163,14 @@ class TileGenerator:
         Felzenswalb's efficient graph segmentation.
         """
 
-        print("== Test mode for graph segmentation ==")
-        print("== Step 1: Producing edge image... ==")
+        # Check that the segmentation executable is available
+        utility_functions.check_compilation()
+
+        logging.info("== Test mode for graph segmentation ==")
+        logging.info("== Producing edge image ==")
         self.__produce_edges()
 
-        print("\n== Step 2: Segmentation over the mask ==")
+        logging.info("== Segmentation over the mask ==")
         self.__segment_felzenszwalb()
 
         # Get information about arguments and image
@@ -206,7 +209,6 @@ class TileGenerator:
         cv2.imwrite(outfile, resized_mask)
 
 
-
     def __graph(self):
         """Performs Felzenszwalb's efficient graph segmentation to obtain an image mask.
 
@@ -217,21 +219,19 @@ class TileGenerator:
 
         utility_functions.check_compilation()
 
-        print("== Step 1: Producing edge image... ==")
+        logging.info("== Producing edge image ==")
         self.__produce_edges()
 
-        print("\n== Step 2: Segmentation over the mask ==")
+        logging.info("== Segmentation over the mask ==")
         self.__segment_felzenszwalb()
 
-        print("\n== Step 3: Selecting tiles ==")
         ts = time.time()
         mask = cv2.imread(self.input_slide.img_outpath + "segmented_" + self.input_slide.sample_id + ".ppm")
         
         # Identify background colors from the mask
         bg_color, bord = utility_functions.bg_color_identifier(mask, self.input_slide.pct_bc, self.input_slide.borders, self.input_slide.corners)
 
-        # If we detect more than one background color, then we replace them all
-        # with the first detected background color
+        # If we detect more than one background color, then we replace them all with the first detected background color
         if bord.shape[0] > 1:
             for i in range(1, bord.shape[0]):
                 mask[np.where((mask == bord[i]).all(axis=2))] = bg_color
@@ -252,11 +252,11 @@ class TileGenerator:
         # Get downsampled version of the image
         img, bdl = utility_functions.downsample_image(self.input_slide.slide, self.input_slide.mask_downsample)
 
-        if self.input_slide.verbose:
-            print("Otsu thresholding will be performed with mask downsampling of " + str(self.input_slide.mask_downsample) + "x.")
-            print("SVS level 0 dimensions:", self.input_slide.slide.dimensions)
-            print("Using level " + str(bdl) + " to downsample.")
-            print("Downsampled size: " + str(img.shape[::-1][1:3]))
+        # Information
+        logging.debug("Otsu thresholding will be performed with mask downsampling of " + str(self.input_slide.mask_downsample) + "x.")
+        logging.debug("SVS level 0 dimensions:" + str(self.input_slide.slide.dimensions))
+        logging.debug("Using level " + str(bdl) + " to downsample.")
+        logging.debug("Downsampled size: " + str(img.shape[::-1][1:3]))
         
         # Reverse the image to BGR and convert to grayscale
         img = img[:, :, ::-1]
@@ -291,11 +291,11 @@ class TileGenerator:
         # Read the image
         img, bdl = utility_functions.downsample_image(self.input_slide.slide, self.input_slide.mask_downsample)
 
-        if self.input_slide.verbose:
-            print("Requested " + str(self.input_slide.mask_downsample) + "x downsampling for edge detection.")
-            print("SVS level 0 dimensions:", self.input_slide.slide.dimensions)
-            print("Using level " + str(bdl) + " to downsample.")
-            print("Downsampled size: " + str(img.shape[::-1][1:3]))
+        # Logging info
+        logging.debug("Requested " + str(self.input_slide.mask_downsample) + "x downsampling for edge detection.")
+        logging.debug("SVS level 0 dimensions:" + str(self.input_slide.slide.dimensions))
+        logging.debug("Using level " + str(bdl) + " to downsample.")
+        logging.debug("Downsampled size: " + str(img.shape[::-1][1:3]))
 
         # Run Canny edge detector
         edges = cv2.Canny(img, 100, 200)
@@ -309,8 +309,7 @@ class TileGenerator:
         warnings.filterwarnings("default")
         te = time.time()
 
-        if self.input_slide.verbose:
-            print("Elapsed time: " + str(round(te-ts, ndigits = 3)) + "s")
+        logging.debug("Elapsed time: " + str(round(te-ts, ndigits = 3)) + "s")
 
 
     def __segment_felzenszwalb(self):
@@ -322,6 +321,7 @@ class TileGenerator:
             SystemError: If an error ocurred during segmentation.
         '''
         
+        # Launch segmentation subprocess
         ts = time.time()
         bashCommand = "src/graph_segmentation/segment " + str(self.input_slide.sigma) + \
             " " + str(self.input_slide.k_const) + " " + str(self.input_slide.minimum_segmentsize) + " " + \
@@ -331,8 +331,8 @@ class TileGenerator:
         output, error = process.communicate()
         te = time.time()
 
-        if self.input_slide.verbose:
-            print("Elapsed time: " + str(round(te-ts, ndigits = 3)) + "s")
+        # Logging information
+        logging.debug("Elapsed time: " + str(round(te-ts, ndigits = 3)) + "s")
 
         if error is not None:
             raise RuntimeError(error)
@@ -401,33 +401,34 @@ class TileGenerator:
             tc_w = 0
             tc_h = 0
 
-        if self.input_slide.verbose:
-            print("Original image dimensions:", str(image_dims))
-            
-            print("\nMask information: ")
-            print("-Mask downscaling factor: " + str(self.input_slide.mask_downsample))
-            print("-Pixel dimensions: " + str(dzgmask_dims))
-            print("-Calculated patch size: " + str(mask_patch_size))
-            print("-Max tile coordinates: " + str(dzgmask_maxtilecoords))
-            print("-Number of tiles: " + str(dzgmask_ntiles))
+        # Debug information
+        logging.debug("** Original image information **")
+        logging.debug("-Dimensions: " + str(image_dims))
 
-            print("\nOutput image information: ")
-            print("Requested " + str(self.input_slide.output_downsample) +
-                "x downsampling for output.")
-            print("Properties of selected deep zoom level:")
-            print("-Real downscaling factor: " + str(dzg_real_downscaling))
-            print("-Pixel dimensions: " + str(dzg_selectedlevel_dims))
-            print("-Selected patch size: " + str(self.input_slide.patch_size))
-            print("-Max tile coordinates: " + str(dzg_selectedlevel_maxtilecoords))
-            print("-Number of tiles: " + str(n_tiles))
+        logging.debug("** Mask information **")
+        logging.debug("-Mask downscaling factor: " + str(self.input_slide.mask_downsample))
+        logging.debug("-Pixel dimensions: " + str(dzgmask_dims))
+        logging.debug("-Calculated patch size: " + str(mask_patch_size))
+        logging.debug("-Max tile coordinates: " + str(dzgmask_maxtilecoords))
+        logging.debug("-Number of tiles: " + str(dzgmask_ntiles))
 
-            print("\nSelecting patches...")
+        logging.debug("** Output image information **")
+        logging.debug("Requested " + str(self.input_slide.output_downsample) + "x downsampling for output.")
+        
+        logging.debug("** Properties of selected deep zoom level **")
+        logging.debug("-Real downscaling factor: " + str(dzg_real_downscaling))
+        logging.debug("-Pixel dimensions: " + str(dzg_selectedlevel_dims))
+        logging.debug("-Selected patch size: " + str(self.input_slide.patch_size))
+        logging.debug("-Max tile coordinates: " + str(dzg_selectedlevel_maxtilecoords))
+        logging.debug("-Number of tiles: " + str(n_tiles))
+
+        logging.info("== Selecting tiles ==")
             
         if dzgmask_maxtilecoords != dzg_selectedlevel_maxtilecoords:
-            print("Rounding error creates extra patches at the side(s) of the image.")
+            logging.info("Rounding error creates extra patches at the side(s) of the image.")
             grid_coord = (min(dzgmask_maxtilecoords[0], dzg_selectedlevel_maxtilecoords[0]),
                 min(dzgmask_maxtilecoords[1], dzg_selectedlevel_maxtilecoords[1]))
-            print("Ignoring the image border. Maximum tile coordinates: " + str(grid_coord))
+            logging.info("Ignoring the image border. Maximum tile coordinates: " + str(grid_coord))
         else:
             grid_coord = dzg_selectedlevel_maxtilecoords
         
@@ -534,10 +535,9 @@ class TileGenerator:
 
         # Finishing
         te = time.time()
-        print("Elapsed time: " + str(round(te - ts, ndigits = 3)) + "s")
+        logging.debug("Elapsed time: " + str(round(te - ts, ndigits = 3)) + "s")
 
-        if self.input_slide.verbose:
-            if self.input_slide.include_blank:
-                print("Selected " + str(patch_results_df.shape[0]) + " tiles")
-            else:
-                print("Selected " + str(sum(preds)) + " tiles")
+        if self.input_slide.include_blank:
+            logging.debug("Selected " + str(patch_results_df.shape[0]) + " tiles")
+        else:
+            logging.debug("Selected " + str(sum(preds)) + " tiles")

@@ -1,4 +1,5 @@
 import cv2
+import logging
 import math
 import numpy as np
 import openslide
@@ -27,10 +28,10 @@ def check_compilation():
 
         # If Windows, the user must compile the script manually, otherwise we attempt to compile it
         if platform.system() == "Windows":
-            print("Please compile the segmentation algorithm before running this script. Exiting.")
+            logging.critical("Please compile the segmentation algorithm before running this script. Exiting.")
             sys.exit(1)
         else:
-            print("Compiling the graph segmentation algorithm...")
+            logging.critical("Compiling the graph segmentation algorithm...")
             try:
                 subprocess.check_call(["make"], stdout=subprocess.PIPE, cwd="src/graph_segmentation/")
             except Exception:

@@ -46,10 +46,10 @@ def build_parser():
         choices=["png", "jpg"],
         default="png")
     group_exec.add_argument(
-        "--verbose",
-        help='Print status messages at each step of the pipeline (both for segmentation and sampling.',
-        action='store_true',
-        default=False)
+        "--info",
+        help='Show status messages at each step of the pipeline.',
+        choices=["silent", "default", "verbose"],
+        default="default")
     group_exec.add_argument(
         '--method',
         help='Method to perform the segmentation.',
@@ -244,14 +244,16 @@ def check_arguments(args):
     warnings.formatwarning = simple_formatwarning
 
     if args.method == "randomsampling":
-        x = [args.save_edges, args.save_mask, args.save_patches,
-             args.save_tilecrossed_image, args.test_mode, 
-             args.save_nonsquare]
-        strs = ["--save-edges", "--save-mask", "--save-patches",
-                "--save-tilecrossed-image", "--test-mode",
-                "--save-nonsquare"] 
+        pass
+
+        # x = [args.save_edges, args.save_mask, args.save_patches,
+        #      args.save_tilecrossed_image, args.test_mode, 
+        #      args.save_nonsquare]
+        # strs = ["--save-edges", "--save-mask", "--save-patches",
+        #         "--save-tilecrossed-image", "--test-mode",
+        #         "--save-nonsquare"] 
         
-        if sum(x) >= 1:
-            invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
-            warnings.warn('The following flags and their related parameters will be ignored' \
-                ' since they are not used in random sampling mode: ' + invalid_flags, RuntimeWarning)
+        # if sum(x) >= 1:
+        #     invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
+        #     warnings.warn('The following flags and their related parameters will be ignored' \
+        #         ' since they are not used in random sampling mode: ' + invalid_flags, RuntimeWarning)
