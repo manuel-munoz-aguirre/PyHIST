@@ -41,24 +41,38 @@ def build_parser():
         default=512,
         help='Integer indicating the size of the produced tiles. A value of P will produce tiles of size P x P.')
     group_exec.add_argument(
-        "--format",
-        help='Format to save the tiles.',
-        choices=["png", "jpg"],
-        default="png")
-    group_exec.add_argument(
-        "--info",
-        help='Show status messages at each step of the pipeline.',
-        choices=["silent", "default", "verbose"],
-        default="default")
-    group_exec.add_argument(
         '--method',
         help='Method to perform the segmentation.',
         choices=['randomsampling', 'graph', 'graphtestmode', 'otsu'],
         default='graph'
     )
+    group_exec.add_argument(
+        "--format",
+        help='Format to save the tiles.',
+        choices=["png", "jpg"],
+        default="png")
+    group_exec.add_argument(
+        '--content-threshold',
+        type=float,
+        default=0.5,
+        help='''Threshold parameter indicating the proportion of the tile area that
+        should be foreground (tissue content) in order to be selected. It should
+        range between 0 and 1. Not applicable for random sampling.''',
+        metavar='CONTENT_THRESHOLD',
+        dest='thres')
+    group_exec.add_argument(
+        '--include-blank',
+        action='store_true',
+        default=False,
+        help='If enabled, background tiles will be saved.')
+    group_exec.add_argument(
+        "--info",
+        help='Show status messages at each step of the pipeline.',
+        choices=["silent", "default", "verbose"],
+        default="default")
 
     # Optional argument group: output
-    group_output = parser.add_argument_group('Output')
+    group_output = parser.add_argument_group('General output')
     group_output.add_argument(
         '--output',
         help="Output directory",
@@ -70,11 +84,6 @@ def build_parser():
         default=False,
         help='Produce a thumbnail of the original image, in which the selected tiles are marked with a cross.')
     group_output.add_argument(
-        '--save-edges',
-        action='store_true',
-        default=False,
-        help='Keep the image produced by the Canny edge detector.')
-    group_output.add_argument(
         '--save-mask',
         action='store_true',
         default=False,
@@ -84,11 +93,6 @@ def build_parser():
         action='store_true',
         default=False,
         help='Save all the produced tiles of the full resolution image.')
-    group_output.add_argument(
-        '--include-blank',
-        action='store_true',
-        default=False,
-        help='If enabled, background tiles will be saved.')
     group_output.add_argument(
         '--save-nonsquare',
         action='store_true',
@@ -134,6 +138,12 @@ def build_parser():
 
     # Optional argument group: segmentation
     group_segmentation = parser.add_argument_group('Graph segmentation')
+    group_segmentation.add_argument(
+        '--save-edges',
+        action='store_true',
+        default=False,
+        help='Keep the image produced by the Canny edge detector.')
+
     group_segmentation.add_argument(
         '--borders',
         type=str,
@@ -205,21 +215,12 @@ def build_parser():
         Used to smooth the input image before segmenting it.
         ''')
 
-    group_segmentation.add_argument(
-        '--content-threshold',
-        type=float,
-        default=0.5,
-        help='''Threshold parameter indicating the proportion of the tile area that
-        should be foreground (tissue content) in order to be selected. It should
-        range between 0 and 1.''',
-        metavar='CONTENT_THRESHOLD',
-        dest='thres')
-
     return parser
 
 
 def check_arguments(args):
-      
+
+    # Argument checking for graph segmentation
     if (args.borders == '0000' and args.corners == '0000') or (args.borders != '0000' and args.corners != '0000'):
         raise ValueError("Invalid borders and corners parameters. Only one of either should be specified.")
 
