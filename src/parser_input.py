@@ -1,4 +1,5 @@
 import itertools as it
+import logging
 import warnings
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -60,11 +61,7 @@ def build_parser():
         range between 0 and 1. Not applicable for random sampling.''',
         metavar='CONTENT_THRESHOLD',
         dest='thres')
-    group_exec.add_argument(
-        '--include-blank',
-        action='store_true',
-        default=False,
-        help='If enabled, background tiles will be saved.')
+
     group_exec.add_argument(
         "--info",
         help='Show status messages at each step of the pipeline.',
@@ -79,6 +76,23 @@ def build_parser():
         type=str,
         default="output/")
     group_output.add_argument(
+        '--save-patches',
+        action='store_true',
+        default=False,
+        help='Save all the produced tiles of the full resolution image.')
+    group_output.add_argument(
+        '--save-blank',
+        action='store_true',
+        default=False,
+        help='If enabled, background tiles will be saved.')
+    group_output.add_argument(
+        '--save-nonsquare',
+        action='store_true',
+        default=False,
+        help='''By default, only square tiles are saved, discarding the regions
+        towards the edges of the WSI that do not fit a complete tile. If this
+        flag is enabled, these non-square tiles will be saved as well.''')
+    group_output.add_argument(
         '--save-tilecrossed-image',
         action='store_true',
         default=False,
@@ -87,19 +101,7 @@ def build_parser():
         '--save-mask',
         action='store_true',
         default=False,
-        help='Keep the mask with tissue segments.')
-    group_output.add_argument(
-        '--save-patches',
-        action='store_true',
-        default=False,
-        help='Save all the produced tiles of the full resolution image.')
-    group_output.add_argument(
-        '--save-nonsquare',
-        action='store_true',
-        default=False,
-        help='''By default, only square tiles are saved, discarding the regions
-        towards the edges of the WSI that do not fit a complete tile. If this
-        flag is enabled, these non-square tiles will be saved as well.''')
+        help='Keep the mask used to perform tile selection.')
 
 
     # Optional argument group: downsampling
@@ -223,38 +225,37 @@ def check_arguments(args):
     # Argument checking for graph segmentation
     if (args.borders == '0000' and args.corners == '0000') or (args.borders != '0000' and args.corners != '0000'):
         raise ValueError("Invalid borders and corners parameters. Only one of either should be specified.")
-
     if args.thres > 1 or args.thres < 0:
         raise ValueError("CONTENT_THRESHOLD should be a floating point number between 0 and 1.")
-
     if args.pct_bc < 0 or args.pct_bc > 100:
         raise ValueError("PERCENTAGE_BC should be an integer number between 0 and 100.")
-
     if not utility_functions.isPowerOfTwo(args.output_downsample):
         raise ValueError("Downsampling factor for output image must be a power of two.")
-
     if not utility_functions.isPowerOfTwo(args.mask_downsample):
         raise ValueError("Downsampling factor for the mask must be a power of two.")
-
     if not utility_functions.isPowerOfTwo(args.tilecross_downsample):
         raise ValueError("Downsampling factor for the tilecrossed image must be a power of two.")
 
-    # If random sampling, ignore other flags
-    def simple_formatwarning(message, *args, **kwargs):
-        return str(message) + '\n'
-    warnings.formatwarning = simple_formatwarning
-
+    # If random sampling, ignore flags
     if args.method == "randomsampling":
-        pass
+        if args.npatches <= 0:
+            raise ValueError("Number of patches to extract must be greater than zero.")
 
-        # x = [args.save_edges, args.save_mask, args.save_patches,
-        #      args.save_tilecrossed_image, args.test_mode,
-        #      args.save_nonsquare]
-        # strs = ["--save-edges", "--save-mask", "--save-patches",
-        #         "--save-tilecrossed-image", "--test-mode",
-        #         "--save-nonsquare"]
+        x = [args.save_blank, args.save_nonsquare, args.save_tilecrossed_image,
+        args.save_mask, args.save_edges]
+        strs = ["--save-blank", "--save-nonsquare", "--save-tilecrossed-image",
+                 "--save-mask", "--save-edges"]
 
-        # if sum(x) >= 1:
-        #     invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
-        #     warnings.warn('The following flags and their related parameters will be ignored' \
-        #         ' since they are not used in random sampling mode: ' + invalid_flags, RuntimeWarning)
+        if sum(x) >= 1:
+            invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
+            logging.info('The following flags and their group parameters will be ignored' \
+                ' since they are not used in random sampling mode: ' + invalid_flags)
+
+    if args.method in ["otsu", "adaptive"]:
+        x = [args.save_edges]
+        strs = ["--save-edges"]
+
+        if sum(x) >= 1:
+            invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
+            logging.info('The following flags and their group parameters will be ignored' \
+                ' since they are not used in thresholding modes: ' + invalid_flags)

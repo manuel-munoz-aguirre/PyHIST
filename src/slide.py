@@ -257,7 +257,7 @@ class TileGenerator:
 
         # Information
         logging.debug("Otsu thresholding will be performed with mask downsampling of " + str(self.input_slide.mask_downsample) + "x.")
-        logging.debug("SVS level 0 dimensions:" + str(self.input_slide.slide.dimensions))
+        logging.debug("SVS level 0 dimensions: " + str(self.input_slide.slide.dimensions))
         logging.debug("Using level " + str(bdl) + " to downsample.")
         logging.debug("Downsampled size: " + str(img.shape[::-1][1:3]))
 
@@ -282,6 +282,7 @@ class TileGenerator:
 
         return mask, bg_color
 
+
     def __adaptive(self):
         """Performs Adaptive thresholding to obtain an image mask.
         The threshold value is a gaussian-weighted sum of the neighbourhood values minus a constant C
@@ -297,7 +298,7 @@ class TileGenerator:
 
         # Information
         logging.debug("Adaptive thresholding will be performed with mask downsampling of " + str(self.input_slide.mask_downsample) + "x.")
-        logging.debug("SVS level 0 dimensions:" + str(self.input_slide.slide.dimensions))
+        logging.debug("SVS level 0 dimensions: " + str(self.input_slide.slide.dimensions))
         logging.debug("Using level " + str(bdl) + " to downsample.")
         logging.debug("Downsampled size: " + str(img.shape[::-1][1:3]))
 
@@ -306,18 +307,19 @@ class TileGenerator:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # Adaptive thresholding and mask generation
-        thresh_adpapt = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
+        thresh_adapt = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 
         # Save mask if requested
         if self.input_slide.save_mask:
             out_filename = self.input_slide.img_outpath + "mask_" + self.input_slide.sample_id + "." + self.input_slide.format
-            cv2.imwrite(out_filename, thresh_adpapt)
+            cv2.imwrite(out_filename, thresh_adapt)
 
         # Convert to PIL
-        mask = Image.fromarray(thresh_adpapt)
+        mask = Image.fromarray(thresh_adapt)
         bg_color = np.array([255, 255, 255])
 
         return mask, bg_color
+
 
     # --- Auxiliary functions ---
     def __produce_edges(self):
@@ -511,7 +513,7 @@ class TileGenerator:
 
                 # Save tile
                 imgtile_out = self.input_slide.tile_folder + tile_names[i] + "." + self.input_slide.format
-                if self.input_slide.include_blank:
+                if self.input_slide.save_blank:
                     tile.save(imgtile_out)
                 else:
                     if preds[i] == 1:
@@ -576,7 +578,7 @@ class TileGenerator:
         te = time.time()
         logging.debug("Elapsed time: " + str(round(te - ts, ndigits = 3)) + "s")
 
-        if self.input_slide.include_blank:
-            logging.debug("Selected " + str(patch_results_df.shape[0]) + " tiles")
+        if self.input_slide.save_blank:
+            logging.debug("Selected " + str(len(preds)) + " tiles")
         else:
             logging.debug("Selected " + str(sum(preds)) + " tiles")

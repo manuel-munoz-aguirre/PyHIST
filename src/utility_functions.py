@@ -179,7 +179,7 @@ def bg_color_identifier(mask, lines_pct, borders, corners):
 
 
 def selector(mask_patch, thres, bg_color, method):
-    """Generic method to redirect a mask patch to a specialized tile selectors.
+    """Generic method to redirect a mask patch to a specialized tile selector.
 
     Args:
         mask_patch: Numpy array for the current mask tile.
@@ -194,9 +194,7 @@ def selector(mask_patch, thres, bg_color, method):
 
     if method == "graph":
         return selector_graph(mask_patch, thres, bg_color)
-    elif method == "otsu":
-        return selector_otsu(mask_patch, thres, bg_color)
-    elif method == "adaptive":
+    elif method in ["otsu", "adaptive"]:
         return selector_otsu(mask_patch, thres, bg_color)
     else: # Otsu selector will be the default for non-implemented TileGenerators
         return selector_otsu(mask_patch, thres, bg_color)
@@ -244,6 +242,7 @@ def selector_otsu(mask_patch, thres, bg_color):
     Returns:
         _: Integer [0/1] indicating if the tile has been selected or not.
     """
+
     bg = np.all(mask_patch == bg_color, axis=2)
     bg_proportion = np.sum(bg) / bg.size
 
