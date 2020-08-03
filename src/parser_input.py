@@ -43,7 +43,7 @@ def build_parser():
     group_exec.add_argument(
         '--method',
         help='Method to perform the segmentation.',
-        choices=['randomsampling', 'graph', 'graphtestmode', 'otsu'],
+        choices=['randomsampling', 'graph', 'graphtestmode', 'otsu', 'adaptive'],
         default='graph'
     )
     group_exec.add_argument(
@@ -97,10 +97,10 @@ def build_parser():
         '--save-nonsquare',
         action='store_true',
         default=False,
-        help='''By default, only square tiles are saved, discarding the regions 
+        help='''By default, only square tiles are saved, discarding the regions
         towards the edges of the WSI that do not fit a complete tile. If this
         flag is enabled, these non-square tiles will be saved as well.''')
-    
+
 
     # Optional argument group: downsampling
     group_downsampling = parser.add_argument_group('Downsampling')
@@ -111,7 +111,7 @@ def build_parser():
         default=16)
     group_downsampling.add_argument(
         "--mask-downsample",
-        help='''Downsampling factor to calculate the image mask. A higher number will make the mask computer faster at the expense of 
+        help='''Downsampling factor to calculate the image mask. A higher number will make the mask computer faster at the expense of
         segmentation quality. Must be a power of 2.''',
         type=int,
         default=16)
@@ -125,7 +125,7 @@ def build_parser():
         help='''Downsampling factor to calculate the test image. Must be a power of 2.''',
         type=int,
         default=16)
-    
+
 
     # Optional argument group: sampling settings
     group_sampling = parser.add_argument_group('Random sampling')
@@ -150,13 +150,13 @@ def build_parser():
         default='1111',
         help='''
         A four digit string. Each digit represents a border of the image in the
-        following order: left, bottom, right, top. If the digit is 1, then the 
-        corresponding border will be taken into account to define background. 
+        following order: left, bottom, right, top. If the digit is 1, then the
+        corresponding border will be taken into account to define background.
         For instance, with 1010 the algorithm will look at the left
         and right borders of the segmented image, in a window of width defined by
         the --percentage-bc argument, and every segment identified will be set as background.
-        This argument is mutually exclusive with --corners. If --borders is set 
-        to be different from 0000, then --corners must be 0000. Default value is 
+        This argument is mutually exclusive with --corners. If --borders is set
+        to be different from 0000, then --corners must be 0000. Default value is
         1111.''',
         choices=combs)
 
@@ -170,7 +170,7 @@ def build_parser():
         digit is equal to 1, then the corresponding corner will be taken
         into account to define background. For instance, with 0101, the
         bottom left and top right corners of the segmented image will be considered,
-        with a square window of size given by the --percentage-bc argument, 
+        with a square window of size given by the --percentage-bc argument,
         and every segment identified will be set as background. This argument is
         mutually exclusive with --borders. If --corners is set to be different from
         0000, then --borders must be 0000. Default value is 0000.''',
@@ -229,7 +229,7 @@ def check_arguments(args):
 
     if args.pct_bc < 0 or args.pct_bc > 100:
         raise ValueError("PERCENTAGE_BC should be an integer number between 0 and 100.")
-    
+
     if not utility_functions.isPowerOfTwo(args.output_downsample):
         raise ValueError("Downsampling factor for output image must be a power of two.")
 
@@ -248,12 +248,12 @@ def check_arguments(args):
         pass
 
         # x = [args.save_edges, args.save_mask, args.save_patches,
-        #      args.save_tilecrossed_image, args.test_mode, 
+        #      args.save_tilecrossed_image, args.test_mode,
         #      args.save_nonsquare]
         # strs = ["--save-edges", "--save-mask", "--save-patches",
         #         "--save-tilecrossed-image", "--test-mode",
-        #         "--save-nonsquare"] 
-        
+        #         "--save-nonsquare"]
+
         # if sum(x) >= 1:
         #     invalid_flags = str([strs[x] for x in [i for i, y in enumerate(x) if y]])
         #     warnings.warn('The following flags and their related parameters will be ignored' \

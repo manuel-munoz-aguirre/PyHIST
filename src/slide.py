@@ -20,7 +20,7 @@ class PySlide:
 
     Attributes:
         initial_args: See parser for all the segmentation arguments.
-        
+
         sample_id: Input filename, removing the path and extension.
         img_outpath: Path to store all the image output
         tile_folder: Path to store the output tiles.
@@ -58,7 +58,7 @@ class PySlide:
             os.makedirs(self.output)
 
         # Create a folder for the sample
-        self.img_outpath = os.path.join(self.output + self.sample_id, '') 
+        self.img_outpath = os.path.join(self.output + self.sample_id, '')
         if not os.path.exists(self.img_outpath):
             os.makedirs(self.img_outpath)
 
@@ -97,6 +97,9 @@ class TileGenerator:
         elif self.method == "otsu":
             mask, bg_color = self.__otsu()
             self.__create_tiles(mask, bg_color)
+        elif self.method == "adaptive":
+            mask, bg_color = self.__adaptive()
+            self.__create_tiles(mask, bg_color)
         else:
             raise NotImplementedError
 
@@ -120,12 +123,12 @@ class TileGenerator:
         boundary_pixel = [x - bestlevel_patchsize for x in self.input_slide.slide.level_dimensions[level]]
 
         # Subsample pixels at level 0
-        pixel_pairs = zip(random.sample(range(0, boundary_pixel[0]), self.input_slide.npatches), 
+        pixel_pairs = zip(random.sample(range(0, boundary_pixel[0]), self.input_slide.npatches),
             random.sample(range(0, boundary_pixel[1]), self.input_slide.npatches))
 
         # The specified self.patch_size is at self.output_downsample level.
         # Need to calculate the patch size at level 0
-        upsample_patchsize = self.input_slide.patch_size * self.input_slide.output_downsample 
+        upsample_patchsize = self.input_slide.patch_size * self.input_slide.output_downsample
         upscale_factor = round(bestlevel_downsample, ndigits = 1)
 
         # Create folder to save the tiles
@@ -158,8 +161,8 @@ class TileGenerator:
 
     def __graphtestmode(self):
         """
-        Produces an image version of the segmented PPM image overlaying the grid with 
-        the selected tile size at the test_downsample resolution. Performed using 
+        Produces an image version of the segmented PPM image overlaying the grid with
+        the selected tile size at the test_downsample resolution. Performed using
         Felzenswalb's efficient graph segmentation.
         """
 
@@ -177,7 +180,7 @@ class TileGenerator:
         image_dims = self.input_slide.slide.dimensions  # (x, y) # UNPACK
         border_pct = self.input_slide.pct_bc / 100
         border_thickness = 2
-        
+
         # Since we read an numpy array, we need to change BGR -> RGB
         mask = cv2.imread(self.input_slide.img_outpath + "segmented_" + self.input_slide.sample_id + ".ppm")  # (y, x)
         resized_mask = cv2.resize(mask, (image_dims[0]//self.input_slide.test_downsample,
@@ -203,7 +206,7 @@ class TileGenerator:
         height_range = range(hpct, resized_mask.shape[0] - hpct)
         resized_mask[height_range, wpct:(wpct + border_thickness), :] = gcol
         resized_mask[height_range, (resized_mask.shape[1] - wpct - border_thickness):(resized_mask.shape[1] - wpct), :] = gcol
-        
+
         # Write output image
         outfile = self.input_slide.img_outpath + "test_" + self.input_slide.sample_id + "." + self.input_slide.format
         cv2.imwrite(outfile, resized_mask)
@@ -227,7 +230,7 @@ class TileGenerator:
 
         ts = time.time()
         mask = cv2.imread(self.input_slide.img_outpath + "segmented_" + self.input_slide.sample_id + ".ppm")
-        
+
         # Identify background colors from the mask
         bg_color, bord = utility_functions.bg_color_identifier(mask, self.input_slide.pct_bc, self.input_slide.borders, self.input_slide.corners)
 
@@ -243,7 +246,7 @@ class TileGenerator:
 
     def __otsu(self):
         """Performs Otsu thresholding to obtain an image mask.
-        
+
         Returns:
             mask: PIL RGB image.
             bg_color: Numpy array indicating the background color.
@@ -257,11 +260,11 @@ class TileGenerator:
         logging.debug("SVS level 0 dimensions:" + str(self.input_slide.slide.dimensions))
         logging.debug("Using level " + str(bdl) + " to downsample.")
         logging.debug("Downsampled size: " + str(img.shape[::-1][1:3]))
-        
+
         # Reverse the image to BGR and convert to grayscale
         img = img[:, :, ::-1]
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        
+
         # Remove noise using a Gaussian filter
         img = cv2.GaussianBlur(img, (5,5), 0)
 
@@ -279,6 +282,42 @@ class TileGenerator:
 
         return mask, bg_color
 
+    def __adaptive(self):
+        """Performs Adaptive thresholding to obtain an image mask.
+        The threshold value is a gaussian-weighted sum of the neighbourhood values minus a constant C
+        Here the size of the neighbourhood is equal to 11 and the constant is equal to 2
+
+        Returns:
+            mask: PIL RGB image.
+            bg_color: Numpy array indicating the background color.
+        """
+
+        # Get downsampled version of the image
+        img, bdl = utility_functions.downsample_image(self.input_slide.slide, self.input_slide.mask_downsample)
+
+        # Information
+        logging.debug("Adaptive thresholding will be performed with mask downsampling of " + str(self.input_slide.mask_downsample) + "x.")
+        logging.debug("SVS level 0 dimensions:" + str(self.input_slide.slide.dimensions))
+        logging.debug("Using level " + str(bdl) + " to downsample.")
+        logging.debug("Downsampled size: " + str(img.shape[::-1][1:3]))
+
+        # Reverse the image to BGR and convert to grayscale
+        img = img[:, :, ::-1]
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # Adaptive thresholding and mask generation
+        thresh_adpapt = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
+
+        # Save mask if requested
+        if self.input_slide.save_mask:
+            out_filename = self.input_slide.img_outpath + "mask_" + self.input_slide.sample_id + "." + self.input_slide.format
+            cv2.imwrite(out_filename, thresh_adpapt)
+
+        # Convert to PIL
+        mask = Image.fromarray(thresh_adpapt)
+        bg_color = np.array([255, 255, 255])
+
+        return mask, bg_color
 
     # --- Auxiliary functions ---
     def __produce_edges(self):
@@ -314,13 +353,13 @@ class TileGenerator:
 
     def __segment_felzenszwalb(self):
         '''
-        Invokes a shell process to run the graph-based segmentation algorithm 
+        Invokes a shell process to run the graph-based segmentation algorithm
         with a PPM image containing the edges from the Canny detector.
 
         Raises:
             SystemError: If an error ocurred during segmentation.
         '''
-        
+
         # Launch segmentation subprocess
         ts = time.time()
         bashCommand = "src/graph_segmentation/segment " + str(self.input_slide.sigma) + \
@@ -340,7 +379,7 @@ class TileGenerator:
 
     def __create_tiles(self, mask, bg_color):
         """Create tiles given a PySlide and a mask.
-        
+
         Arguments:
             mask: PIL Image containing the mask for the slide.
             bg_color: Numpy array indicating the color used for the background in the mask.
@@ -378,8 +417,8 @@ class TileGenerator:
         # If needed, generate an image to store tile-crossed output, at the requested tilecross downsample level
         if self.input_slide.save_tilecrossed_image:
 
-            # Get a downsampled numpy array for the image 
-            tilecrossed_img = utility_functions.downsample_image(self.input_slide.slide, 
+            # Get a downsampled numpy array for the image
+            tilecrossed_img = utility_functions.downsample_image(self.input_slide.slide,
                 self.input_slide.tilecross_downsample, mode="numpy")[0]
 
             # Calculate patch size in the mask
@@ -414,7 +453,7 @@ class TileGenerator:
 
         logging.debug("** Output image information **")
         logging.debug("Requested " + str(self.input_slide.output_downsample) + "x downsampling for output.")
-        
+
         logging.debug("** Properties of selected deep zoom level **")
         logging.debug("-Real downscaling factor: " + str(dzg_real_downscaling))
         logging.debug("-Pixel dimensions: " + str(dzg_selectedlevel_dims))
@@ -423,7 +462,7 @@ class TileGenerator:
         logging.debug("-Number of tiles: " + str(n_tiles))
 
         logging.info("== Selecting tiles ==")
-            
+
         if dzgmask_maxtilecoords != dzg_selectedlevel_maxtilecoords:
             logging.info("Rounding error creates extra patches at the side(s) of the image.")
             grid_coord = (min(dzgmask_maxtilecoords[0], dzg_selectedlevel_maxtilecoords[0]),
@@ -431,7 +470,7 @@ class TileGenerator:
             logging.info("Ignoring the image border. Maximum tile coordinates: " + str(grid_coord))
         else:
             grid_coord = dzg_selectedlevel_maxtilecoords
-        
+
         # Counters
         preds = [None] * n_tiles
         row, col, i = 0, 0, 0
@@ -453,7 +492,7 @@ class TileGenerator:
 
             # Predict if the tile will be kept (1) or not (0)
             preds[i] = utility_functions.selector(mask_tile, self.input_slide.thres, bg_color, self.input_slide.method)
-            
+
             # Save patches if requested
             if self.input_slide.save_patches:
                 tile = dzg.get_tile(dzg_selectedlevel_idx, (col, row))
@@ -462,14 +501,14 @@ class TileGenerator:
                 if not self.input_slide.save_nonsquare:
                     if tile.size[0] != tile.size[1]:
                         preds[i] = 0
-                
+
                 # Prepare metadata
                 tile_names.append(self.input_slide.sample_id + "_" + str(i).zfill(digits_padding))
                 tile_dims_w.append(tile.size[0])
                 tile_dims_h.append(tile.size[1])
                 tile_rows.append(row)
                 tile_cols.append(col)
-                
+
                 # Save tile
                 imgtile_out = self.input_slide.tile_folder + tile_names[i] + "." + self.input_slide.format
                 if self.input_slide.include_blank:
@@ -517,13 +556,13 @@ class TileGenerator:
                 if self.input_slide.save_tilecrossed_image:
                     tc_w = 0
                     tc_h = tc_h + tilecross_patchsize + 1
-            
+
             # Increase counter for metadata
             i += 1
 
         # Saving tilecrossed image
         if self.input_slide.save_tilecrossed_image:
-            tilecrossed_outpath = self.input_slide.img_outpath + "/tilecrossed_" + self.input_slide.sample_id + "." + self.input_slide.format 
+            tilecrossed_outpath = self.input_slide.img_outpath + "/tilecrossed_" + self.input_slide.sample_id + "." + self.input_slide.format
             tilecrossed_img.save(tilecrossed_outpath)
 
         # Save predictions for each tile

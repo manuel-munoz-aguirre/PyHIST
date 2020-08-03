@@ -16,13 +16,13 @@ from PIL import Image
 
 def check_compilation():
     """Graph segmentation compilation check.
-    
+
     Validates that the segmentation executable is compiled when using the graph TileGenerator.
     Compilation will be performed if the binary is not available.
-    
+
     Returns:
         None
-    """ 
+    """
 
     if not os.path.isfile("src/graph_segmentation/segment"):
 
@@ -41,13 +41,13 @@ def check_compilation():
 
 def check_image(slidepath):
     """Checks that Openslide can open the input slide file.
-    
+
     Args:
         slide: String containing path to a slide.
 
     Returns:
         None
-    """ 
+    """
 
     # Check if the image can be read
     try:
@@ -58,7 +58,7 @@ def check_image(slidepath):
 
 def downsample_image(slide, downsampling_factor, mode="numpy"):
     """Downsample an Openslide at a factor.
-    
+
     Takes an OpenSlide SVS object and downsamples the original resolution
     (level 0) by the requested downsampling factor, using the most convenient
     image level. Returns an RGB numpy array or PIL image.
@@ -75,7 +75,7 @@ def downsample_image(slide, downsampling_factor, mode="numpy"):
     """
 
     # Get the best level to quickly downsample the image
-    # Add a pseudofactor of 0.1 to ensure getting the next best level 
+    # Add a pseudofactor of 0.1 to ensure getting the next best level
     # (i.e. if 16x is chosen, avoid getting 4x instead of 16x)
     best_downsampling_level = slide.get_best_level_for_downsample(downsampling_factor + 0.1)
 
@@ -96,7 +96,7 @@ def isPowerOfTwo(n):
     """Checks if a number is a power of two.
 
         Returns:
-            _: True/False 
+            _: True/False
     """
     return math.ceil(math.log2(n)) == math.floor(math.log2(n))
 
@@ -106,7 +106,7 @@ def bg_color_identifier(mask, lines_pct, borders, corners):
 
     Args:
         mask: A numpy array with the image mask.
-        lines_pct: A percentage [0, 100] indicating the percentage of the 
+        lines_pct: A percentage [0, 100] indicating the percentage of the
             image (starting from the edges) to consider to define the background.
         borders: A string composed of four numbers [0,1] indicating which
             sides of the image to use to define the background. String order
@@ -124,7 +124,7 @@ def bg_color_identifier(mask, lines_pct, borders, corners):
     # Transform image percentages into number of lines
     lines_topbottom = round(mask.shape[0] * (lines_pct/100))
     lines_leftright = round(mask.shape[1] * (lines_pct/100))
-            
+
     if borders != '0000':
         if borders[0] == '1':
             top = mask[:lines_topbottom, :, :]
@@ -196,13 +196,15 @@ def selector(mask_patch, thres, bg_color, method):
         return selector_graph(mask_patch, thres, bg_color)
     elif method == "otsu":
         return selector_otsu(mask_patch, thres, bg_color)
+    elif method == "adaptive":
+        return selector_otsu(mask_patch, thres, bg_color)
     else: # Otsu selector will be the default for non-implemented TileGenerators
         return selector_otsu(mask_patch, thres, bg_color)
 
 
 def selector_graph(mask_patch, thres, bg_color):
     """Specialized selector for graph TileGenerator.
-    
+
     Determines if a mask tile contains a certain percentage of foreground.
 
     Args:
@@ -229,8 +231,8 @@ def selector_graph(mask_patch, thres, bg_color):
 
 
 def selector_otsu(mask_patch, thres, bg_color):
-    """Specialized selector for otsu TileGenerator.
-    
+    """Specialized selector for otsu or adaptive TileGenerator.
+
     Determines if a mask tile contains a certain percentage of foreground.
 
     Args:
@@ -255,7 +257,7 @@ def selector_otsu(mask_patch, thres, bg_color):
 
 def clean(slide):
     """Cleans intermediate files when graph segmentation is performed.
-    
+
     If the user selected graph segmentation and does not want to keep
     the edges and the mask, remove them.
 
