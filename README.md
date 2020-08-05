@@ -18,17 +18,21 @@
 
 ## About PyHIST<a name="about"></a>
 
-PyHIST is a Histological Image Segmentation Tool: a lightweight semi-automatic pipeline to extract tiles from SVS histopathology whole image slides. It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks. It generates masks for the foreground, and extract tiles from the full resolution image.
+PyHIST is a Histological Image Segmentation Tool: a lightweight semi-automatic pipeline to extract tiles from SVS histopathology whole image slides. It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks. It generates a mask for the foreground (tissue slices), and extract tiles from the full resolution image.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="logo" width=600></img>
 </div>
 
 ## Setup<a name="setup"></a>
-The Docker image described in the section below contains all the necessary dependencies to run PyHIST. To install locally, skip to the [installation](#installation) section.
+Installation of PyHIST can be performed in three different ways:
+* [Through a Docker image](#docker) (Windows/macOS/Linux)
+* [Conda environment](#conda) (macOS/Linux)
+* [Standalone](#standalone) (Linux)
+ To install locally, skip to the [installation](#installation) section.
 
-### PyHIST Docker image
-The public Docker image for PyHIST can be downloaded from the Docker Hub:
+### PyHIST Docker image (Windows/macOS/Linux)<a name="docker"></a>
+The Docker image described in this section contains all the necessary dependencies to run PyHIST. The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
 docker pull mmunozag/pyhist
 ```
@@ -44,7 +48,7 @@ Build the docker image with the following command:
 docker build -f docker/Dockerfile -t pyhist .
 ```
 
-### Installation<a name="installation"></a>
+### Conda environment (macOS/Linux)<a name="conda"></a>
 Clone the respository and move into the folder:
 ```shell
 git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
@@ -62,12 +66,12 @@ cd src/graph_segmentation/
 make
 ```
 
-PyHIST has the following dependencies:
+### Standalone installation (Linux)<a name="standalone"></a>
+Clone the repository and simply use PyHIST as python script (see [quickstart](#usescript)). PyHIST has the following dependencies:
 * Python (>3.6):
-  * openslide, pandas, numpy, PIL, cv2
+  * openslide-python, opencv-python, pandas, numpy, Pillow
 * Other:
-  * openslide-tools, libgl1-mesa-glx, pixman==0.36.0
-
+  * openslide-tools, pixman==0.36.0
 
 
 ## Quickstart<a name="quickstart"></a>
@@ -99,7 +103,7 @@ docker run -v /path_with/images/:/pyhist/images/ \
 	<dockerimg> --save-tilecrossed-image --output images/ images/test.svs
 ```
 
-### Using PyHIST
+### Using PyHIST<a name="usescript"></a>
 PyHIST can be directly executed as a script. To see all available options:
 ```
 python pyhist.py --help
@@ -109,12 +113,9 @@ A working example to process an image called `test.svs` located inside `/path_wi
 ```
 python pyhist.py \
 	--content-threshold 0.05 \
-	--sigma 0.7 \
 	--patch-size 64 \
-	--mask-downsample 16 \
 	--output-downsample 16 \
-	--tilecross-downsample 64 \
-	--verbose \
+	--info "verbose" \
 	--save-tilecrossed-image\
 	/path_with/images/test.svs
 ```

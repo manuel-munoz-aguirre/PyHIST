@@ -364,11 +364,12 @@ class TileGenerator:
 
         # Launch segmentation subprocess
         ts = time.time()
-        bashCommand = "src/graph_segmentation/segment " + str(self.input_slide.sigma) + \
-            " " + str(self.input_slide.k_const) + " " + str(self.input_slide.minimum_segmentsize) + " " + \
-            self.input_slide.img_outpath + "edges_" + self.input_slide.sample_id + ".ppm" + " " + \
-            self.input_slide.img_outpath + "segmented_" + self.input_slide.sample_id + ".ppm"
-        process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+        edge_file = self.input_slide.img_outpath + "edges_" + self.input_slide.sample_id + ".ppm"
+        ppm_file = self.input_slide.img_outpath + "segmented_" + self.input_slide.sample_id + ".ppm"
+        command = ["src/graph_segmentation/segment", str(self.input_slide.sigma), str(self.input_slide.k_const), 
+        str(self.input_slide.minimum_segmentsize), edge_file, ppm_file]
+        
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
         output, error = process.communicate()
         te = time.time()
 
@@ -474,7 +475,7 @@ class TileGenerator:
             grid_coord = dzg_selectedlevel_maxtilecoords
 
         # Counters
-        preds = [None] * n_tiles
+        preds = [0] * n_tiles
         row, col, i = 0, 0, 0
         tile_names = []
         tile_dims_w = []
@@ -568,6 +569,9 @@ class TileGenerator:
             tilecrossed_img.save(tilecrossed_outpath)
 
         # Save predictions for each tile
+        # If there were issues with the borders, set None predictions to 0
+        preds = [0 if None else x for x in preds]
+
         if self.input_slide.save_patches:
             patch_results = []
             patch_results.extend(list(zip(tile_names, tile_dims_w, tile_dims_h, preds, tile_rows, tile_cols)))

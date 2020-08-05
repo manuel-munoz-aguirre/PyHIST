@@ -1,12 +1,15 @@
 # How does PyHIST work?
-PyHIST works with SVS files. From an input SVS image (a), it first produces a version of the image that highlights tissue edges using a Canny edge detector (b). Then, a [graph segmentation](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf) algorithm is executed over it in order to generate a mask of the image regions with tissue content, i.e. differentiating the background (contiguous color region) from the foreground (different colors) (c). Finally, the original image is divided into tiles (e) and these are written to disk together with a log file indicating which tile coordinates have tissue content.
+PyHIST works with SVS files (see the [experimental support](#experimental_support) section for other file types). From an input slide (a), it first generates a mask (b) using a specific segmentation and/or thresholding method. Then, thresholding is performed over this mask to decide if a tile contains more than a specific amount of background. Once the tiles containing tissue are selected (c), these tiles will be written to disk as individual files (d), together with a log file indicating which tiles were selected as well as their zero-based coordinates.
+
+<!-- 
+produces a version of the image that highlights tissue edges using a Canny edge detector (b). Then, a [graph segmentation](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf) algorithm is executed over it in order to generate a mask of the image regions with tissue content, i.e. differentiating the background (contiguous color region) from the foreground (different colors) (c). Finally, the original image is divided into tiles (e) and these are written to disk together with a log file indicating which tile coordinates have tissue content. -->
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="how_pyhist_works"></img>
 </div>
 <br>
 
-With PyHIST, the output tiles can be generated from a downsampled version of the WSI, at factors that are powers of 2: depending on the application, it may be sufficient to work with a lower resolution version of the original WSI. Downsampling can also be applied independently at different stages of the process: if the mask is downsampled, the segmentation process is faster since it will be executed at a lower resolution. The segmentation overview image (panel (e) on the figure above) can also be downsampled: since it is used as a sanity check of the segmentation process, it is usually not necessary to keep a large version.
+With PyHIST, the output tiles can be generated from a downsampled version of the WSI, at factors that are powers of 2: depending on the application, it may be sufficient to work with a lower resolution version of the original WSI. Downsampling can also be applied independently at different stages of the process: if the mask is downsampled, the segmentation process is faster since it will be executed at a lower resolution. The segmentation overview image (panel (d) on the figure above) can also be downsampled: since it is used as a sanity check of the segmentation process, it is usually not necessary to keep a large version.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/downsamples.png" alt="downsamples"></img>
@@ -16,7 +19,7 @@ With PyHIST, the output tiles can be generated from a downsampled version of the
 # Creating tiles from an histological image
 You can run this tutorial in Google Colab:
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1qkpvfd3aTKmbr4YrBMnHa2fCLUv-zgB3)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/17O8bhzDb9Wa594zBl5C5ubEnjQvbdknn?usp=sharing)
 
 We will use an image of skin tissue from the [GTEx Histological Images resource](https://brd.nci.nih.gov/brd/image-search/search_specimen/). Download the sample with: 
 
@@ -131,3 +134,9 @@ a) the four borders (default) or b) the four corners of the image to aid in the 
 ![borders_argument](resources/borders_argument.png)
 
 The same logic applies for `--corners` parameter. The checking of borders/corners is mutually exclusive - only one can be set at a time. By default, determination of background is done using the borders. For the complete list of parameters, refer to the [parameters](parameters.md) page.
+
+
+# Experimental file support<a name="experimental_support"></a>
+PyHIST was developed with Aperio SVS/TIFF files in mind. However, we currently also provide experimental support for the following formats:
+* Hamamatsu (.ndpi, .vms)
+* Trestle (.tif)

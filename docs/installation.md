@@ -1,23 +1,26 @@
-The Docker image described in the section below contains all the necessary dependencies to run PyHIST. Otherwise, to install locally, skip to the [installation](#installation) section.
+Installation of PyHIST can be performed in three different ways:
+* [Through a Docker image](#docker) (Windows/macOS/Linux)
+* [Conda environment](#conda) (macOS/Linux)
+* [Standalone](#standalone) (Linux)
 
-# PyHIST Docker image
-The public Docker image for PyHIST can be downloaded from the Docker Hub:
+### PyHIST Docker image (Windows/macOS/Linux)<a name="docker"></a>
+The Docker image described in this section contains all the necessary dependencies to run PyHIST. The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
 docker pull mmunozag/pyhist
 ```
 
-Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
+After downloading it, you can skip directly to [Quickstart: Using the Docker image](#usedocker). Alternatively, you can build the Docker image on your own by using the Dockerfile in this repository. Clone the respository and move into the folder:
 ```shell
 git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
 cd PyHIST
 ```
 
-Build the Docker image with the following command:
+Build the docker image with the following command:
 ```shell
 docker build -f docker/Dockerfile -t pyhist .
 ```
 
-# Installation<a name="installation"></a>
+### Conda environment (macOS/Linux)<a name="conda"></a>
 Clone the respository and move into the folder:
 ```shell
 git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
@@ -35,9 +38,9 @@ cd src/graph_segmentation/
 make
 ```
 
-PyHIST has the following dependencies:
-
+### Standalone installation (Linux)<a name="standalone"></a>
+Clone the repository and simply use PyHIST as python script. PyHIST has the following dependencies:
 * Python (>3.6):
-  * openslide, pandas, numpy, PIL, cv2
+  * openslide-python, opencv-python, pandas, numpy, Pillow
 * Other:
-  * openslide-tools, libgl1-mesa-glx, pixman==0.36.0
+  * openslide-tools, pixman==0.36.0

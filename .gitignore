@@ -11,3 +11,4 @@ output/
 src/graph_segmentation/segment
 use_case/.ipynb_checkpoints
 .ipynb_checkpoints
+test_slides/

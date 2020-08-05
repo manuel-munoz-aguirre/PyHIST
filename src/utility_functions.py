@@ -52,6 +52,13 @@ def check_image(slidepath):
     # Check if the image can be read
     try:
         _ = openslide.OpenSlide(slidepath)
+
+        filename, file_extension = os.path.splitext(slidepath)
+        file_extension = file_extension.lower()
+        
+        if file_extension != ".svs":
+            logging.critical("Experimental support only for " + file_extension + " slides!")
+
     except Exception:
         raise TypeError("Unsupported format, or file not found.")
 
@@ -120,7 +127,7 @@ def bg_color_identifier(mask, lines_pct, borders, corners):
         bord_unique: Returns other candidate colors for the background.
     """
     bord = np.empty((1, 3))
-
+    
     # Transform image percentages into number of lines
     lines_topbottom = round(mask.shape[0] * (lines_pct/100))
     lines_leftright = round(mask.shape[1] * (lines_pct/100))
