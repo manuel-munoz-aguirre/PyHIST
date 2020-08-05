@@ -18,7 +18,7 @@
 
 ## About PyHIST<a name="about"></a>
 
-PyHIST is a Histological Image Segmentation Tool: a lightweight semi-automatic pipeline to extract tiles from SVS histopathology whole image slides. It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks. It generates a mask for the foreground (tissue slices), and extract tiles from the full resolution image.
+PyHIST is a Histological Image Segmentation Tool: a lightweight semi-automatic pipeline to extract tiles from SVS histopathology whole image slides (with experimental support for [other formats](#documentation)). It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks. It generates a mask for the foreground (tissue slices), and extract tiles from the full resolution image.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="logo" width=600></img>
@@ -26,8 +26,8 @@ PyHIST is a Histological Image Segmentation Tool: a lightweight semi-automatic p
 
 ## Setup<a name="setup"></a>
 Installation of PyHIST can be performed in three different ways:
-* [Through a Docker image](#docker) (Windows/macOS/Linux)
-* [Conda environment](#conda) (macOS/Linux)
+* [Through a Docker image](#docker) (Linux/macOS/Windows)
+* [Conda environment](#conda) (Linux/macOS)
 * [Standalone](#standalone) (Linux)
  To install locally, skip to the [installation](#installation) section.
 

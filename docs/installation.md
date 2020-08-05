@@ -1,6 +1,7 @@
 Installation of PyHIST can be performed in three different ways:
-* [Through a Docker image](#docker) (Windows/macOS/Linux)
-* [Conda environment](#conda) (macOS/Linux)
+
+* [Through a Docker image](#docker) (Linux/macOS/Windows)
+* [Conda environment](#conda) (Linux/macOS)
 * [Standalone](#standalone) (Linux)
 
 ### PyHIST Docker image (Windows/macOS/Linux)<a name="docker"></a>
@@ -40,7 +41,6 @@ make
 
 ### Standalone installation (Linux)<a name="standalone"></a>
 Clone the repository and simply use PyHIST as python script. PyHIST has the following dependencies:
-* Python (>3.6):
-  * openslide-python, opencv-python, pandas, numpy, Pillow
-* Other:
-  * openslide-tools, pixman==0.36.0
+
+* Python (>3.6): openslide-python, opencv-python, pandas, numpy, Pillow
+* Other: openslide-tools, pixman==0.36.0

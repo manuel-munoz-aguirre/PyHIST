@@ -471,6 +471,7 @@ class TileGenerator:
             grid_coord = (min(dzgmask_maxtilecoords[0], dzg_selectedlevel_maxtilecoords[0]),
                 min(dzgmask_maxtilecoords[1], dzg_selectedlevel_maxtilecoords[1]))
             logging.info("Ignoring the image border. Maximum tile coordinates: " + str(grid_coord))
+            n_tiles = grid_coord[0] * grid_coord[1]
         else:
             grid_coord = dzg_selectedlevel_maxtilecoords
 
@@ -569,9 +570,6 @@ class TileGenerator:
             tilecrossed_img.save(tilecrossed_outpath)
 
         # Save predictions for each tile
-        # If there were issues with the borders, set None predictions to 0
-        preds = [0 if None else x for x in preds]
-
         if self.input_slide.save_patches:
             patch_results = []
             patch_results.extend(list(zip(tile_names, tile_dims_w, tile_dims_h, preds, tile_rows, tile_cols)))
