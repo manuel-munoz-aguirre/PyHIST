@@ -2,7 +2,7 @@
 
 PyHIST usage: `pyhist.py [arguments] input_image`
 
-## PyHIST parameters
+### PyHIST parameters
 * [Positional](#positional): input image
 * [Optional](#optional): show PyHIST's help message.
 * [Execution](#execution): controls how the tile extraction should be performed.
@@ -11,7 +11,7 @@ PyHIST usage: `pyhist.py [arguments] input_image`
 * [Random sampling](#random): parameters applicable to the random sampling method only.
 * [Graph segmentation](#graph): parameters applicable to the graph-based segmentation method only.
 
-## Graph-based segmentation parameter tuning examples:
+### Graph-based segmentation parameter tuning examples
 * [k-const](#kconst)
 * [Borders and corners](#borderscorners)
 
@@ -148,7 +148,7 @@ Parameter required by the segmentation algorithm. Used to smooth the input image
 
 ---
 
-# Graph-based segmentation parameter tuning examples:
+# Graph-based segmentation parameter tuning examples
 ## K-const<a name="kconst"></a>
 The _k_ constant is used by the graph segmentation algorithm to set a scale of observation. Setting a high value of k will lead to the algorithm detecting segments of a large size, while lowering it will result in a finer region segmentation. Here, we show an animated example of increasing the value of `--k-const` up to the default of 10000. As the value increases, the regions detected as a single unit are larger. Further details on the specific meaning of this parameter are available in the graph segmentation method [paper](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf). We find that the default value of _k_ tends to work well for many types of WSIs.
 
