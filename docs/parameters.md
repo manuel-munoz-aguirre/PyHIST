@@ -20,7 +20,6 @@ PyHIST usage: `pyhist.py [arguments] input_image`
 ## Positional<a name="positional"></a>
 ### Input image
 `input_image`
-
 The whole slide image input file.
 
 ---
@@ -28,7 +27,6 @@ The whole slide image input file.
 ## Optional<a name="optional"></a>
 ### Help
 `-h, --help`
-
 Print the help page and exit.
 
 ---
@@ -38,27 +36,22 @@ Controls how the tile extraction should be performed. These parameters are appli
 
 ### Patch size
 `--patch-size`
-
- Integer indicating the size of the produced tiles. A value of P will produce tiles of size P x P. (default: 512).
+Integer indicating the size of the produced tiles. A value of P will produce tiles of size P x P. (default: 512).
 
 ### Tile generation method
 `--method {randomsampling,graph,graphtestmode,otsu,adaptive}`
-
 Method to perform the segmentation. (default: graph)
 
 ### Format
 `--format {png,jpg}`
-
- Format to save the tiles. (default: png)
+Format to save the tiles. (default: png)
 
 ### Content threshold
 `--content-threshold CONTENT_THRESHOLD`
-
 Threshold parameter indicating the proportion of the tile area that should be foreground (tissue content) in order to be selected. It should range between 0 and 1. Not applicable for random sampling. (default: 0.5)
 
 ### Pipeline execution information
 `--info {silent,default,verbose}`
-
 Show status messages at each step of the pipeline (default: default).
 
 ---
@@ -158,12 +151,13 @@ Parameter required by the segmentation algorithm. Used to smooth the input image
 # Graph-based segmentation parameter tuning examples:
 ## K-const<a name="kconst"></a>
 The _k_ constant is used by the graph segmentation algorithm to set a scale of observation. Setting a high value of k will lead to the algorithm detecting segments of a large size, while lowering it will result in a finer region segmentation. Here, we show an animated example of increasing the value of `--k-const` up to the default of 10000. As the value increases, the regions detected as a single unit are larger. Further details on the specific meaning of this parameter are available in the graph segmentation method [paper](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf). We find that the default value of _k_ tends to work well for many types of WSIs.
+
 ![animation_kconst](resources/kconst.gif)
 
 ## Borders and corners<a name="borderscorners"></a>
 In the graph-based segmentation tiling method, PyHIST identifies tissue regions and assigns a different color to each one. To perform evaluation for each tile to check if it meets the minimum foreground threshold, PyHIST needs to know what is the background color in the image. Since it is not safe to assume that the background color is the most frequent color in the image (for example, a tissue slice might cover almost all the WSI and thus, that region would be the most frequent color), PyHIST relies on either the borders and corners of the mask image to set the background color. 
 
-By default, PyHIST looks at the mask color content in the four edges (left, bottom, right, top). How much of the image border is used to determine the background is defined by the `--percentage-bc` argument. The number of pixels that will compose each border is simply calculated as `image width x percentage-bc` (left and right borders) and `image height x percentage_bc` (top and bottom borders). Below, we show an example of increasing the `--percentage-bc` in a graph test mode image. As the value increases, PyHIST uses a larger fraction of the image to evaluate the background color. The border sides that PyHIST will use to determine the background color are defined by the `--borders` flag. By default, PyHIST will use all the four borders to determine the background color, however, in some situations it might be desirable to use only a subset of the borders to determine the background color: for example, in a situation where there are image artifacts present in the borders (due to suboptimal tissue fixing on the slide, etc.).
+By default, PyHIST looks at the mask color content in the four edges (left, bottom, right, top). How much of the image border is used to determine the background is defined by the `--percentage-bc` argument. The number of pixels that will compose each border is simply calculated as `image width x percentage-bc` (left and right borders) and `image height x percentage_bc` (top and bottom borders). Below, we show an example of increasing the `--percentage-bc` in a graph test mode image (if the lines in the animation do not show clearly, open the image in a separate window). As the value increases, PyHIST uses a larger fraction of the image to evaluate the background color. The border sides that PyHIST will use to determine the background color are defined by the `--borders` flag. By default, PyHIST will use all the four borders to determine the background color, however, in some situations it might be desirable to use only a subset of the borders to determine the background color: for example, in a situation where there are image artifacts present in the borders (due to suboptimal tissue fixing on the slide, etc.). 
 
 ![animation_borders](resources/borders.gif)
 
