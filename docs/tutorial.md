@@ -1,8 +1,5 @@
 # How does PyHIST work?
-PyHIST works with SVS files (see the [experimental support](#experimental_support) section for other file types). From an input slide (a), it first generates a mask (b) using a specific segmentation and/or thresholding method. Then, thresholding is performed over this mask to decide if a tile contains more than a specific amount of background. Once the tiles containing tissue are selected (c), these tiles will be written to disk as individual files (d), together with a log file indicating which tiles were selected as well as their zero-based coordinates.
-
-<!-- 
-produces a version of the image that highlights tissue edges using a Canny edge detector (b). Then, a [graph segmentation](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf) algorithm is executed over it in order to generate a mask of the image regions with tissue content, i.e. differentiating the background (contiguous color region) from the foreground (different colors) (c). Finally, the original image is divided into tiles (e) and these are written to disk together with a log file indicating which tile coordinates have tissue content. -->
+PyHIST works with SVS files (see the [experimental support](#experimental_support) section for other file types). The PyHIST pipeline involves three main steps: 1) produce a mask for the input WSI that differentiates the tissue from the background, 2) create a grid of tiles on top of the mask, evaluate each tile to see if it meets the minimum content threshold to be considered as foreground and 3) extract the selected tiles from the input WSI at the requested resolution. By default, PyHIST uses a graph-based segmentation method to produce the mask. From the input slide (a), an alternative version of the image (b) is generated using a Canny edge detector, which captures tissue details and enhances the distinction between the background and the foreground. Then, a [graph segmentation](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf) algorithm is executed over it in order to generate a mask of the image regions with tissue content, i.e. differentiating the background (contiguous color region) from the foreground (different colors) (c). The mask is divided into a tile grid with a user-specified tile size. These tiles are then assessed to see if they meet a minimum foreground (tissue) threshold with respect to the total area of the tile, in which case they are kept (e), and otherwise are discarded. Optionally, the user can also decide to save all the tiles in the image. An overview image (d) is generated during the tiling process in order to show which tiles wre selected. 
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="how_pyhist_works"></img>
@@ -35,10 +32,17 @@ If you have `ImageMagick` installed, the image properties can be viewed with the
 	> GTEX-1117F-0126.svs[3] TIFF 2987x2415 2987x2415+0+0 8-bit sRGB 328.3MB 0.000u 0:00.000
 	> GTEX-1117F-0126.svs[4] TIFF 1600x629 1600x629+0+0 8-bit sRGB 328.3MB 0.000u 0:00.000
 
-Let's assume that we want to extract tiles of size 64x64 at a downsampled resolution of 16x. PyHIST has a test mode that allows us to verify the image masking, as well as how the image tiles will look like at the requested resolution. By default, output will be saved in a folder with the same name as the input image:
+Let's assume that we want to extract tiles of size 64x64 (`--patch-size 64`) at a resolution downsampled by a factor of 16x. Several methods are available to perform segmentation within PyHIST (see the [Parameters](parameters.md) section). 
 
-	python pyhist.py --patch-size 64 --test-downsample 16 --test-mode GTEX-1117F-0126.svs
-	eog output/GTEX-1117F-0126/test_GTEX-1117F-0126.png
+By default, PyHIST will use graph-based segmentation (`--method "graph"`) to decide which tiles are composed of foreground. For graph-based segmentation, a test mode is available (`--method "graphtestmode"`) to help verify how the image mask would look like, as well as how the image tiles look at requested resolution (`--test-downsample 16`). PyHIST uses these masks to threshold the foreground content. Graph test mode is useful to examine how the output would look like before proceeding to save all the tiles to disk. If the `--info "verbose"` flag is used, PyHIST will output detailed information during the execution.
+
+By default, output will be saved in a folder with the same name as the input image:
+```shell
+python pyhist.py --method "graphtestmode" --patch-size 64 --test-downsample 16 --info "verbose" GTEX-1117F-0126.svs
+	
+# Display the image using any image viewer
+eog output/GTEX-1117F-0126/test_GTEX-1117F-0126.png
+```
 
 <a name="testimage">
 <div align="center">
@@ -47,56 +51,25 @@ Let's assume that we want to extract tiles of size 64x64 at a downsampled resolu
 </a>
 <br>
 
-The faint black border that is not part of the grid is an aid for the segmentation and it is explained in the [parameter tuning](#parametertuning) section. Once we verify the tiling and masking, we proceed to extract the tiles using the `--save-patches` flag. To save an overview image of the tiles that were selected, add the `--save-tilecrossed-image` flag. To see details of the mask generation and tile extraction, use the `--verbose` flag.
+The faint black border that is not part of the blue grid is an aid for the graph-based segmentation and is explained in the [Parameters](parameters.md) section in the documentation.
 
-	python pyhist.py --patch-size 64 \
-		--output-downsample 16 \
-		--save-patches \
-		--save-tilecrossed-image \
-		--verbose \
-		GTEX-1117F-0126.svs 
+Note that **by default, PyHIST will not save the tiles to disk**. This is done in order to avoid generating a large number of files by mistake. Once we verify the tiling and masking looks correct, we proceed to extract the tiles using the `--save-patches` flag at the requested resolution for the output (`--output-downsample 16`).
 
+To save an overview image of the tiles that were selected, add the `--save-tilecrossed-image` flag.
 
-```shell
-== Step 1: Producing edge image... ==
-Requested 16x downsampling for edge detection.
-SVS level 0 dimensions: (47807, 38653)
-Using level 2 to downsample.
-Downsampled size: (2987, 2415)
-Elapsed time: 0.429s
+	python pyhist.py --patch-size 64 --output-downsample 16 --save-patches --save-tilecrossed-image --info "verbose" GTEX-1117F-0126.svs
 
-== Step 2: Segmentation over the mask ==
-Elapsed time: 2.201s
-
-== Step 3: Selecting tiles ==
-Original image dimensions: (47807, 38653)
-
-Mask information: 
--Mask downscaling factor: 16
--Pixel dimensions: (2987, 2415)
--Calculated patch size: 64
--Max tile coordinates: (47, 38)
--Number of tiles: 1786
-
-Output image information: 
-Requested 16x downsampling for output.
-Properties of selected deep zoom level:
--Real downscaling factor: 15.999665327978581
--Pixel dimensions: (2988, 2416)
--Selected patch size: 64
--Max tile coordinates: (47, 38)
--Number of tiles: 1786
-
-Selecting patches...
-Elapsed time: 11.312s
-```
 
 The generated overview image `output/GTEX-1117F-0126/tilecrossed_GTEX-1117F-0126.png` is below. The blue crosses mark the tiles that are selected as containing tissue content.
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/tilecrossed_GTEX-1117F-0126.png" alt="GTEx_tilecrossed"></img>
 </div>
 
-A log file `tile_selection.tsv` is also generated in the output folder with metadata for each file, such as the dimensions, an indicator `Keep` which contains `1` if the tile met the threshold for being considered as foreground, and `0` otherwise. Grid tile coordinates are encoded in the last two columns, with zero-based indexing.
+A log file `tile_selection.tsv` is also generated in the output folder with metadata for each file, such as the dimensions, an indicator column `Keep` which contains 1 if the tile met the threshold for being considered as foreground, and 0 otherwise. Grid tile coordinates are encoded in the last two columns, with zero-based indexing.
+```shell
+head -n 5 output/GTEX-1117F-0126/tile_selection.tsv
+```
+
 ```
 Tile                    Width   Height  Keep    Row     Column
 GTEX-1117F-0126_0000    64      64      0       0       0
@@ -105,36 +78,52 @@ GTEX-1117F-0126_0002    64      64      0       0       2
 GTEX-1117F-0126_0003    64      64      0       0       3
 ```
 
-Depending on the application, we may want to be more (or less) strict on the amount of tissue we want to keep. To control this, we can use the `--content-threshold` flag, which is the minimal amount of tissue required (bounded to [0, 1] where 0 is no tissue content, and 1 is completely filled with tissue). To keep the edges of the tissue fragments in this sample skin image, we can set this flag as:
+Depending on the application, we may want to be more (or less) strict on the amount of tissue we want to keep. To control this, we can use the `--content-threshold` flag, which is the minimal amount of tissue required (bounded to [0, 1] where 0 is no tissue content, and 1 is completely filled with tissue). The content threshold is calculated based on the mask generated by the selected method. To keep the edges of the tissue fragments in this sample skin image, we can set this flag as:
 
 ```shell
-python pyhist.py --patch-size 64 \
-	--content-threshold 0.05 \
-	--output-downsample 16 \
-	--save-patches \
-	--save-tilecrossed-image \
-	--verbose GTEX-1117F-0126.svs
+# Remove the output from the previous section
+rm -rf output/
+
+# Run PyHIST
+python pyhist.py --patch-size 64 --content-threshold 0.05 --output-downsample 16 --save-patches --save-tilecrossed-image --info "verbose" GTEX-1117F-0126.svs
 ```
+
+We examine the output of using this stricter --content-threshold:
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/tilecrossed_GTEX-1117F-0126_strict.png" alt="GTEx_tilecrossed_strict"></img>
+</div>
 
 The output format for the tiles (either `.png` or `.jpg`) can be specified with the `--format` flag.
 
-# Random patch sampling<a name="randomsapling"></a>
-It is also possible to randomly sample a given number of tiles of a given size from the WSI at any downscaling factor. For example, to extract 200 tiles at random from the native WSI resolution:
+# Otsu thresholding<a name="otsu"></a>
+Tile generation can be also performed through thresholding methods (currently otsu and adaptive methods are available). These methods are simpler since in PyHIST they do not require to set additional segmentation parameters, and will work well for slides composed of homogeneous tissue segments. Graph segmentation is still preferred for complex cases where it may be difficult to generate a mask (for example, slides of adipose tissue with fat content that could be mistaken as background).
+
+Here, we show an example of using Otsu thresholding. If we want to generate a smaller version of the tilecrossed image, we can use the `--tilecross-downsample` flag. Note that this is independent from the output resolution (i.e. we can examine the tile-crossed output at a lower resolution while still maintaining a higher resolution for the output). We can also save the generated mask using the `--save-mask` flag.
+
 ```shell
-python pyhist.py --sampling \
-	--npatches 200 \
-	--output-downsample 1 \
-	GTEX-1117F-0126.svs
+# Remove the output from the previous section
+rm -rf output/
+
+# Run PyHIST
+python pyhist.py --method "otsu" --patch-size 64 --content-threshold 0.05 --output-downsample 16 \
+ --tilecross-downsample 32 --save-patches --save-mask --save-tilecrossed-image --info "verbose" GTEX-1117F-0126.svs
 ```
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/tilecrossed_GTEX-1117F-0126_otsu.png" alt="GTEx_tilecrossed_otsu"></img>
+</div>
 
-# Parameter tuning<a name="parametertuning"></a>
-PyHIST has some auxiliary tuning parameters that can be modified to change how the segmentation is performed. Here we show a the effect of tweaking an important parameter: `--borders`. PyHIST checks either: 
-a) the four borders (default) or b) the four corners of the image to aid in the determination of the background color. For example, on the [test mode image](#testimage) shown above, everything that is outside the region enclosed by the black square is defined to be as background color. However, sometimes, there is tissue content in the border, which leads to an incorrect segmentation. In those case, we simply override the check for the offending sides with the `--borders` parameter, which takes a four digit string as an argument indicating which sides need to be considered, in order of left, bottom, right, top. In the case above, to override the check for the top and right borders, we would call PyHIST with `--borders 1100`:
+Examine the mask:
+<div align="center">
+<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/mask_GTEX-1117F-0126_otsu.png" alt="GTEx_mask_otsu"></img>
+</div>
 
-![borders_argument](resources/borders_argument.png)
 
-The same logic applies for `--corners` parameter. The checking of borders/corners is mutually exclusive - only one can be set at a time. By default, determination of background is done using the borders. For the complete list of parameters, refer to the [parameters](parameters.md) page.
+# Random patch sampling<a name="randomsapling"></a>
+It is also possible to randomly sample a given number of tiles (`--method="randomsampling"`) of a given size from the WSI at any downscaling factor. Note that **random sampling does not perform foreground thresholding**: it simply selects tiles at random from any position in the slide. For example, to extract 200 tiles at random from the native WSI resolution (`--output-downsample 1`):
 
+```shell
+python pyhist.py --method="randomsampling" --npatches 200 --output-downsample 1 --save-patches GTEX-1117F-0126.svs
+```
 
 # Experimental file support<a name="experimental_support"></a>
 PyHIST was developed with Aperio SVS/TIFF files in mind. However, we currently also provide experimental support for the following formats:

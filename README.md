@@ -18,7 +18,7 @@
 
 ## About PyHIST<a name="about"></a>
 
-PyHIST is a Histological Image Segmentation Tool: a lightweight semi-automatic pipeline to extract tiles from SVS histopathology whole image slides (with experimental support for [other formats](#documentation)). It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks. It generates a mask for the foreground (tissue slices), and extract tiles from the full resolution image.
+PyHIST is a **H**istological **I**mage **S**egmentation **T**ool: a lightweight semi-automatic pipeline to extract tiles with foreground content from SVS histopathology whole image slides (with experimental support for [other formats](#documentation)). It is intended to be an easy-to-use tool to preprocess histological image data for usage in machine learning tasks. The PyHIST pipeline involves three main steps: 1) produce a mask for the input WSI that differentiates the tissue from the background, 2) create a grid of tiles on top of the mask, evaluate each tile to see if it meets the minimum content threshold to be considered as foreground and 3) extract the selected tiles from the input WSI at the requested resolution.
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="logo" width=600></img>
@@ -31,7 +31,7 @@ Installation of PyHIST can be performed in three different ways:
 * [Standalone](#standalone) (Linux)
  To install locally, skip to the [installation](#installation) section.
 
-### PyHIST Docker image (Windows/macOS/Linux)<a name="docker"></a>
+### PyHIST Docker image (Linux/macOS/Windows)<a name="docker"></a>
 The Docker image described in this section contains all the necessary dependencies to run PyHIST. The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
 docker pull mmunozag/pyhist
@@ -48,7 +48,7 @@ Build the docker image with the following command:
 docker build -f docker/Dockerfile -t pyhist .
 ```
 
-### Conda environment (macOS/Linux)<a name="conda"></a>
+### Conda environment (Linux/macOS)<a name="conda"></a>
 Clone the respository and move into the folder:
 ```shell
 git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
@@ -77,7 +77,6 @@ Clone the repository and simply use PyHIST as python script (see [quickstart](#u
 ## Quickstart<a name="quickstart"></a>
 ### Using the Docker image<a name="usedocker"></a>
 PyHIST can be directly executed using Docker. Replace `<dockerimg>` by `mmunozag/pyhist` if you pulled the image from Dockerhub, or simply `pyhist` if you built the image yourself.
-
 ```shell
 docker run <dockerimg> --help
 ```

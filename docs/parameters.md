@@ -180,3 +180,12 @@ A four digit binary number. Each digit represents a corner of the image in the f
 
 `CONTENT_THRESHOLD` can range between 0 and 1, and indicates the proportion of the tile area that should be foreground in order to select the tile. The default value is 0.5.
 
+---
+
+# Parameter tuning for graph-based segmentation<a name="parametertuning"></a>
+PyHIST has some auxiliary tuning parameters that can be modified to change how the segmentation is performed. Here we show a the effect of tweaking an important parameter: `--borders`. PyHIST checks either: 
+a) the four borders (default) or b) the four corners of the image to aid in the determination of the background color. For example, on the [test mode image](#testimage) shown above, everything that is outside the region enclosed by the black square is defined to be as background color. However, sometimes, there is tissue content in the border, which leads to an incorrect segmentation. In those case, we simply override the check for the offending sides with the `--borders` parameter, which takes a four digit string as an argument indicating which sides need to be considered, in order of left, bottom, right, top. In the case above, to override the check for the top and right borders, we would call PyHIST with `--borders 1100`:
+
+![borders_argument](resources/borders_argument.png)
+
+The same logic applies for `--corners` parameter. The checking of borders/corners is mutually exclusive - only one can be set at a time. By default, determination of background is done using the borders. For the complete list of parameters, refer to the [parameters](parameters.md) page.

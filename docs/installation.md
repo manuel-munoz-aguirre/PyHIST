@@ -4,7 +4,7 @@ Installation of PyHIST can be performed in three different ways:
 * [Conda environment](#conda) (Linux/macOS)
 * [Standalone](#standalone) (Linux)
 
-### PyHIST Docker image (Windows/macOS/Linux)<a name="docker"></a>
+### PyHIST Docker image (Linux/macOS/Windows)<a name="docker"></a>
 The Docker image described in this section contains all the necessary dependencies to run PyHIST. The public Docker image for PyHIST can be downloaded from the Docker Hub:
 ```shell
 docker pull mmunozag/pyhist
@@ -21,7 +21,7 @@ Build the docker image with the following command:
 docker build -f docker/Dockerfile -t pyhist .
 ```
 
-### Conda environment (macOS/Linux)<a name="conda"></a>
+### Conda environment (Linux/macOS)<a name="conda"></a>
 Clone the respository and move into the folder:
 ```shell
 git clone https://github.com/manuel-munoz-aguirre/PyHIST.git
