@@ -79,12 +79,12 @@ def build_parser():
         '--save-patches',
         action='store_true',
         default=False,
-        help='Save all the produced tiles of the full resolution image.')
+        help='Save the tiles with an amount of foreground above the content threshold.')
     group_output.add_argument(
         '--save-blank',
         action='store_true',
         default=False,
-        help='If enabled, background tiles will be saved.')
+        help='If enabled, background tiles will be saved (i.e. those that did not meet the content threshold.).')
     group_output.add_argument(
         '--save-nonsquare',
         action='store_true',
@@ -113,8 +113,8 @@ def build_parser():
         default=16)
     group_downsampling.add_argument(
         "--mask-downsample",
-        help='''Downsampling factor to calculate the image mask. A higher number will make the mask computer faster at the expense of
-        segmentation quality. Must be a power of 2.''',
+        help='''Downsampling factor to calculate the image mask. A higher number will speed up the tiling evaluation process at the expense of
+        tile evaluation quality. Must be a power of 2.''',
         type=int,
         default=16)
     group_downsampling.add_argument(
@@ -124,7 +124,7 @@ def build_parser():
         default=16)
     group_downsampling.add_argument(
         "--test-downsample",
-        help='''Downsampling factor to calculate the test image. Must be a power of 2.''',
+        help='''Downsampling factor to generate the test image in graph test mode. Must be a power of 2.''',
         type=int,
         default=16)
 
@@ -158,8 +158,7 @@ def build_parser():
         and right borders of the segmented image, in a window of width defined by
         the --percentage-bc argument, and every segment identified will be set as background.
         This argument is mutually exclusive with --corners. If --borders is set
-        to be different from 0000, then --corners must be 0000. Default value is
-        1111.''',
+        to be different from 0000, then --corners must be 0000.''',
         choices=combs)
 
     group_segmentation.add_argument(
@@ -175,7 +174,7 @@ def build_parser():
         with a square window of size given by the --percentage-bc argument,
         and every segment identified will be set as background. This argument is
         mutually exclusive with --borders. If --corners is set to be different from
-        0000, then --borders must be 0000. Default value is 0000.''',
+        0000, then --borders must be 0000.''',
         choices=combs)
 
     group_segmentation.add_argument(
@@ -183,21 +182,19 @@ def build_parser():
         type=int,
         default=10000,
         help='''
-        Parameter required by the segmentation algorithm.
-        Value for the threshold function. The threshold function controls the
-        degree to which the difference between two segments must be greater than
-        their internal differences in order for them not to be merged. Lower values
-        result in finer segmentation. Larger images require higher values.
-        Default value is 10000.''')
+        Parameter used by the segmentation algorithm to threshold regions in the image. 
+        This value controls the degree to which the difference between two segments must be 
+        greater than their internal differences in order for them not to be merged. 
+        Lower values result in finer region segmentation, while higher values are better 
+        to detect large chunks of tissue. Larger images require higher values.''')
 
     group_segmentation.add_argument(
         '--minimum_segmentsize',
         type=int,
         default=10000,
-        help='''Parameter required by the segmentation algorithm.
-        Minimum segment size enforced by post-processing.
-        Larger images require higher values.
-        Default value is 10000.''')
+        help='''Parameter required by the segmentation algorithm. 
+        Minimum segment size enforced by post-processing.''',
+        metavar='MINIMUM_SEGMENTSIZE')
 
     group_segmentation.add_argument(
         '--percentage-bc',
@@ -214,8 +211,7 @@ def build_parser():
         type=float,
         default=0.5,
         help='''Parameter required by the segmentation algorithm.
-        Used to smooth the input image before segmenting it.
-        ''')
+        Used to smooth the input image with a Gaussian kernel before segmenting it.''')
 
     return parser
 

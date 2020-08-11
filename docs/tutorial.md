@@ -5,21 +5,13 @@ PyHIST works with SVS files (see the [experimental support](#experimental_suppor
 2. Create a grid of tiles on top of the mask, evaluate each tile to see if it meets the minimum content threshold to be considered as foreground 
 3. Extract the selected tiles from the input WSI at the requested resolution. 
 
-By default, PyHIST uses a graph-based segmentation method to produce the mask. From the input slide (a), an alternative version of the image (b) is generated using a Canny edge detector, which captures tissue details and enhances the distinction between the background and the foreground. Then, a [graph segmentation](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf) algorithm is executed over it in order to generate a mask of the image regions with tissue content, i.e. differentiating the background (contiguous color region) from the foreground (different colors) (c). The mask is divided into a tile grid with a user-specified tile size. These tiles are then assessed to see if they meet a minimum foreground (tissue) threshold with respect to the total area of the tile, in which case they are kept (e), and otherwise are discarded. Optionally, the user can also decide to save all the tiles in the image. An overview image (d) is generated during the tiling process in order to show which tiles wre selected. 
+By default, PyHIST uses a graph-based segmentation method to produce the mask. From the input slide (a), an alternative version of the image (b) is generated using a Canny edge detector, which captures tissue details and enhances the distinction between the background and the foreground. Then, a [graph segmentation](http://people.cs.uchicago.edu/~pff/papers/seg-ijcv.pdf) algorithm is executed over it in order to generate a mask of the image regions with tissue content, i.e. differentiating the background (contiguous color region) from the foreground (different colors) (c). The mask is divided into a tile grid with a user-specified tile size. These tiles are then assessed to see if they meet a minimum foreground (tissue) threshold with respect to the total area of the tile, in which case they are kept (e), and otherwise are discarded. Optionally, the user can also decide to save all the tiles in the image. An overview image (d) is generated during the tiling process in order to show which tiles were selected. 
 
 ![how_pyhist_works](resources/how_pyhist_works.png)
-<!-- <div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/how_pyhist_works.png" alt="how_pyhist_works"></img>
-</div>
-<br> -->
 
 With PyHIST, the output tiles can be generated from a downsampled version of the WSI, at factors that are powers of 2: depending on the application, it may be sufficient to work with a lower resolution version of the original WSI. Downsampling can also be applied independently at different stages of the process: if the mask is downsampled, the segmentation process is faster since it will be executed at a lower resolution. The segmentation overview image (panel (d) on the figure above) can also be downsampled: since it is used as a sanity check of the segmentation process, it is usually not necessary to keep a large version.
 
 ![downsamples](resources/downsamples.png)
-<!-- <div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/downsamples.png" alt="downsamples"></img>
-</div>
-<br> -->
 
 # Creating tiles from an histological image
 You can run this tutorial in Google Colab:
@@ -51,12 +43,6 @@ eog output/GTEX-1117F-0126/test_GTEX-1117F-0126.png
 ```
 
 ![GTEx_mask_test](resources/test_GTEX-1117F-0126.png)
-<!-- <a name="testimage">
-<div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/test_GTEX-1117F-0126.png" alt="GTEx_mask_test"></img>
-</div>
-</a>
-<br> -->
 
 The faint black border that is not part of the blue grid is an aid for the graph-based segmentation and is explained in the [Parameters](parameters.md) section in the documentation. Note that **by default, PyHIST will not save the tiles to disk**. This is done in order to avoid generating a large number of files by mistake. Once we verify the tiling and masking looks correct, we proceed to extract the tiles using the `--save-patches` flag at the requested resolution for the output (`--output-downsample 16`).
 
@@ -66,10 +52,6 @@ To save an overview image of the tiles that were selected, add the `--save-tilec
 
 The generated overview image `output/GTEX-1117F-0126/tilecrossed_GTEX-1117F-0126.png` is below. The blue crosses mark the tiles that are selected as containing tissue content.
 ![GTEx_tilecrossed](resources/tilecrossed_GTEX-1117F-0126.png)
-<!-- 
-<div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/tilecrossed_GTEX-1117F-0126.png" alt="GTEx_tilecrossed"></img>
-</div> -->
 
 A log file `tile_selection.tsv` is also generated in the output folder with metadata for each file, such as the dimensions, an indicator column `Keep` which contains 1 if the tile met the threshold for being considered as foreground, and 0 otherwise. Grid tile coordinates are encoded in the last two columns, with zero-based indexing.
 ```shell
@@ -94,10 +76,6 @@ python pyhist.py --patch-size 64 --content-threshold 0.05 --output-downsample 16
 
 We examine the output of using this stricter --content-threshold:
 ![GTEx_tilecrossed_strict](resources/tilecrossed_GTEX-1117F-0126_strict.png)
-<!-- 
-<div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/tilecrossed_GTEX-1117F-0126_strict.png" alt="GTEx_tilecrossed_strict"></img>
-</div> -->
 
 The output format for the tiles (either `.png` or `.jpg`) can be specified with the `--format` flag.
 
@@ -114,16 +92,11 @@ rm -rf output/
 python pyhist.py --method "otsu" --patch-size 64 --content-threshold 0.05 --output-downsample 16 \
  --tilecross-downsample 32 --save-patches --save-mask --save-tilecrossed-image --info "verbose" GTEX-1117F-0126.svs
 ```
+
 ![GTEx_tilecrossed_otsu](resources/tilecrossed_GTEX-1117F-0126_otsu.png)
-<!-- <div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/tilecrossed_GTEX-1117F-0126_otsu.png" alt="GTEx_tilecrossed_otsu"></img>
-</div> -->
 
 Examine the mask:
 ![GTEx_tilecrossed_otsu](resources/mask_GTEX-1117F-0126_otsu.png)
-<!-- <div align="center">
-<img src="https://raw.githubusercontent.com/manuel-munoz-aguirre/PyHIST/master/docs/resources/mask_GTEX-1117F-0126_otsu.png" alt="GTEx_mask_otsu"></img>
-</div> -->
 
 
 # Random patch sampling<a name="randomsapling"></a>
