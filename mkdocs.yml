@@ -2,6 +2,7 @@ site_name: PyHIST
 nav:
     - Home: 'index.md'
     - Installation: 'installation.md'
+    - Quickstart: 'quickstart.md'
     - Tutorial: 'tutorial.md'
     - Parameters: 'parameters.md'
     - Use case: 'testcase.md'

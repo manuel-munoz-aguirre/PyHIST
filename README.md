@@ -28,7 +28,7 @@ PyHIST is a **H**istological **I**mage **S**egmentation **T**ool: a lightweight 
 Installation of PyHIST can be performed in three different ways:
 * [Through a Docker image](#docker) (Linux/macOS/Windows)
 * [Conda environment](#conda) (Linux/macOS)
-* [Standalone](#standalone) (Linux)
+* [Standalone](#standalone) (Linux/macOS)
  To install locally, skip to the [installation](#installation) section.
 
 ### PyHIST Docker image (Linux/macOS/Windows)<a name="docker"></a>
@@ -59,6 +59,8 @@ A `conda` environment with all the necessary Python dependencies can be created 
 ```
 conda env create -f conda/environment.yml
 ```
+
+Then, PyHIST can be simply used as a python script (see [quickstart](#usescript)).
 
 ### Standalone installation (Linux/macOS)<a name="standalone"></a>
 Although we recommend isolating all the dependencies in a conda environment as above, PyHIST can be simply used as a python script (see [quickstart](#usescript)) as long as the following dependencies are met:
