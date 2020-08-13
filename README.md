@@ -12,6 +12,10 @@
 <a href='https://pyhist.readthedocs.io/en/latest/?badge=latest'>
 <img src='https://readthedocs.org/projects/pyhist/badge/?version=latest' alt='Documentation Status' />
 </a>
+
+<a href='https://travis-ci.com/github/manuel-munoz-aguirre/PyHIST'>
+<img src='https://travis-ci.com/manuel-munoz-aguirre/PyHIST.svg?branch=master' alt='Travis CI' />
+</a>
 </h1>
 
 [About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Documentation](#documentation) | [References](#references)
