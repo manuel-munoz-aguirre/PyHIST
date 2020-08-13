@@ -45,7 +45,7 @@ cd PyHIST
 
 Build the docker image with the following command:
 ```shell
-docker build -f docker/Dockerfile -t pyhist .
+docker build -f docker/Dockerfile -t mmunozag/pyhist .
 ```
 
 ### Conda environment (Linux/macOS)<a name="conda"></a>
@@ -60,14 +60,8 @@ A `conda` environment with all the necessary Python dependencies can be created 
 conda env create -f conda/environment.yml
 ```
 
-Compile the segmentation tool:
-```
-cd src/graph_segmentation/
-make
-```
-
-### Standalone installation (Linux)<a name="standalone"></a>
-Clone the repository and simply use PyHIST as python script (see [quickstart](#usescript)). PyHIST has the following dependencies:
+### Standalone installation (Linux/macOS)<a name="standalone"></a>
+Although we recommend isolating all the dependencies in a conda environment as above, PyHIST can be simply used as a python script (see [quickstart](#usescript)) as long as the following dependencies are met:
 * Python (>3.6):
   * openslide-python, opencv-python, pandas, numpy, Pillow
 * Other:
@@ -76,14 +70,14 @@ Clone the repository and simply use PyHIST as python script (see [quickstart](#u
 
 ## Quickstart<a name="quickstart"></a>
 ### Using the Docker image<a name="usedocker"></a>
-PyHIST can be directly executed using Docker. Replace `<dockerimg>` by `mmunozag/pyhist` if you pulled the image from Dockerhub, or simply `pyhist` if you built the image yourself.
+PyHIST can be directly executed using Docker.
 ```shell
-docker run <dockerimg> --help
+docker run mmunozag/pyhist --help
 ```
 
 To mount a local folder `/path_with/images/` mapping to the folder `/pyhist/images/` inside the container, use the `-v` flag specifying the absolute path of the local folder. 
 ```shell
-docker run -v /path_with/images/:/pyhist/images/ <dockerimg> [args]
+docker run -v /path_with/images/:/pyhist/images/ mmunozag/pyhist [args]
 ```
 
 Optionally, if you want to ensure that all the generated output files are written with permissions belonging to the current host user (instead of `root`, which is Docker's default), specify the username and group with the `-u` flag (retrieval of both can be automated with `id` ), as well mapping the `passwd` file with a second `-v` flag: 
@@ -91,7 +85,7 @@ Optionally, if you want to ensure that all the generated output files are writte
 docker run -v /path_with/images/:/pyhist/images/ \
 	-u $(id -u):$(id -g) \ 
 	-v /etc/passwd:/etc/passwd \
-	<dockerimg> [args]
+	mmunozag/pyhist [args]
 ```
 
 A working example to process an image called `test.svs` located inside `/path_with/images/`:
@@ -99,7 +93,7 @@ A working example to process an image called `test.svs` located inside `/path_wi
 docker run -v /path_with/images/:/pyhist/images/ \
 	-u $(id -u):$(id -g) \
 	-v /etc/passwd:/etc/passwd \
-	<dockerimg> --save-tilecrossed-image --output images/ images/test.svs
+	mmunozag/pyhist --save-tilecrossed-image --output images/ images/test.svs
 ```
 
 ### Using PyHIST<a name="usescript"></a>
