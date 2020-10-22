@@ -18,7 +18,7 @@
 </a>
 </h1>
 
-[About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Documentation](#documentation) | [References](#references)
+[About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Documentation](#documentation) | [References](#references) | [Citation](#citation)
 
 ## About PyHIST<a name="about"></a>
 
@@ -120,3 +120,24 @@ python pyhist.py \
 
 ## Documentation <a name="documentation"></a>
 PyHIST's [documentation](https://pyhist.readthedocs.io/) explains in detail the installation steps and all available arguments and processing modes, as well as [tutorial](https://pyhist.readthedocs.io/en/latest/tutorial/) with examples to perform histological image segmentation, random tile sampling, and explanations of the steps of the segmentation pipeline. An example [use case](https://pyhist.readthedocs.io/en/latest/testcase/) with a sample of The Cancer Genome Atlas WSIs is also available to demonstrate how to use PyHIST to prepare data for a machine learning application.
+
+## Citation <a name="citation"></a>
+PyHIST is published in a PLOS Computational Biology software article ([doi: 10.1371/journal.pcbi.1008349](https://doi.org/10.1371/journal.pcbi.1008349)). If you find PyHIST useful, consider citing as:
+
+```
+Muñoz-Aguirre, M., Ntasis, V. F., Rojas, S. & Guigó, R. PyHIST: A Histological Image Segmentation Tool. PLoS Computational Biology 16, e1008349 (2020).
+
+@article{MunozAguirre2020,
+  doi = {10.1371/journal.pcbi.1008349},
+  url = {https://doi.org/10.1371/journal.pcbi.1008349},
+  year = {2020},
+  month = oct,
+  publisher = {Public Library of Science ({PLoS})},
+  volume = {16},
+  number = {10},
+  pages = {e1008349},
+  author = {Manuel Mu{\~{n}}oz-Aguirre and Vasilis F. Ntasis and Santiago Rojas and Roderic Guig{\'{o}}},
+  title = {{PyHIST}: A Histological Image Segmentation Tool},
+  journal = {{PLOS} Computational Biology}
+}
+```
