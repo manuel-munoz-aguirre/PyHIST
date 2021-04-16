@@ -24,7 +24,8 @@ def check_compilation():
         None
     """
 
-    if not os.path.isfile("src/graph_segmentation/segment"):
+    segment_path = os.path.join(os.path.dirname(__file__), "graph_segmentation/")
+    if not os.path.isfile(segment_path + "segment"):
 
         # If Windows, the user must compile the script manually, otherwise we attempt to compile it
         if platform.system() == "Windows":
@@ -33,7 +34,7 @@ def check_compilation():
         else:
             logging.critical("Compiling the graph segmentation algorithm...")
             try:
-                subprocess.check_call(["make"], stdout=subprocess.PIPE, cwd="src/graph_segmentation/")
+                subprocess.check_call(["make"], stdout=subprocess.PIPE, cwd=segment_path)
             except Exception:
                 print("Compilation of the segmentation algorithm failed. Please compile it before running this script. Exiting.")
                 sys.exit(1)
