@@ -12,8 +12,8 @@ RUN apt-get update -qq && \
 	apt-get install -y -q build-essential && \
 	micromamba install -y -c conda-forge conda-pack && \
 	micromamba env create -f /tmp/env.yaml && \
-	conda-pack -p /opt/conda/envs/pyhist -o /tmp/env.tar &&\
-	micromamba remove -p /op/conda/envs/pyhist --all -y &&
+	conda-pack -p /opt/conda/envs/pyhist -o /tmp/env.tar && \
+	micromamba remove -p /opt/conda/envs/pyhist --all -y && \
 	micromamba clean --all --yes
 
 # Unpack pyhist environment
@@ -35,6 +35,8 @@ RUN cd src/graph_segmentation/ && \
 # Build final, Slim image.
 FROM debian:buster-slim
 RUN apt-get update -qq && \
+	apt-get install -y -q \
+	libgl1-mesa-glx && \
 	rm -rf /var/lib/apt/lists/*
 WORKDIR /pyhist
 COPY --from=builder /pyhist /pyhist
