@@ -1,8 +1,8 @@
 FROM mambaorg/micromamba:0.14.0 AS builder
 
-LABEL maintainer "Manuel Muñoz <manuel.munoz@crg.eu>" \
-      version "1.0" \
-      description "Docker image for PyHIST"
+LABEL authors="Manuel Muñoz <manuel.munoz@crg.eu>, Vasilis Ntasis <vasilis.ntasis@crg.eu>" \
+ 	version="1.0" \
+	description="Docker image for PyHIST"
 
 # Copy yml file for the conda environment
 COPY conda/environment.yml /tmp/env.yaml
