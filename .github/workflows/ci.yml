@@ -20,12 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        python_version: [2.7, 3.5, 3.6]
+        python-version: [2.7, 3.6]
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: PyHIST
+          activate-environment: pyhist
           environment-file: conda/environment.yml
           auto-activate-base: false
       - run: .github/workflows/ci.sh
