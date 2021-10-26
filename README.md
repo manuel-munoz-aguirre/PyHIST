@@ -13,12 +13,12 @@
 <img src='https://readthedocs.org/projects/pyhist/badge/?version=latest' alt='Documentation Status' />
 </a>
 
-<a href='https://travis-ci.com/github/manuel-munoz-aguirre/PyHIST'>
-<img src='https://travis-ci.com/manuel-munoz-aguirre/PyHIST.svg?branch=master' alt='Travis CI' />
+<a href='https://github.com/manuel-munoz-aguirre/PyHIST/actions/workflows/ci.yml'>
+<img src='https://github.com/manuel-munoz-aguirre/PyHIST/actions/workflows/ci.yml/badge.svg?branch=master' alt='CI'/>
 </a>
 </h1>
 
-[About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Documentation](#documentation) | [References](#references) | [Citation](#citation)
+[About PyHIST](#about) | [Setup](#setup) | [Quickstart](#quickstart) | [Documentation](#documentation) | [References](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1008349#references) | [Citation](#citation)
 
 ## About PyHIST<a name="about"></a>
 
@@ -70,7 +70,7 @@ Although we recommend isolating all the dependencies in a conda environment as a
 * Python (>3.6):
   * openslide-python, opencv-python, pandas, numpy, Pillow
 * Other:
-  * openslide-tools, pixman==0.36.0
+  * openslide-tools, pixman=0.40.0
 
 
 ## Quickstart<a name="quickstart"></a>
