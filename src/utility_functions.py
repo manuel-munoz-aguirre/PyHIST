@@ -14,11 +14,14 @@ import warnings
 from PIL import Image
 
 
-def check_compilation():
+def check_compilation(logger):
     """Graph segmentation compilation check.
 
     Validates that the segmentation executable is compiled when using the graph TileGenerator.
     Compilation will be performed if the binary is not available.
+
+    Args:
+        logger: A logger object.
 
     Returns:
         None
@@ -28,22 +31,24 @@ def check_compilation():
 
         # If Windows, the user must compile the script manually, otherwise we attempt to compile it
         if platform.system() == "Windows":
-            logging.critical("Please compile the segmentation algorithm before running this script. Exiting.")
+            logger.critical("Please compile the segmentation algorithm before running this script. Exiting.")
             sys.exit(1)
         else:
-            logging.critical("Compiling the graph segmentation algorithm...")
+            logger.critical("Compiling the graph segmentation algorithm...")
             try:
                 subprocess.check_call(["make"], stdout=subprocess.PIPE, cwd="src/graph_segmentation/")
             except Exception:
-                print("Compilation of the segmentation algorithm failed. Please compile it before running this script. Exiting.")
+                logger.error("Compilation of the segmentation algorithm failed. Please compile it before running this script. Exiting.")
                 sys.exit(1)
 
+
+SVS_EXT = ".svs"
 
 def check_image(slidepath):
     """Checks that Openslide can open the input slide file.
 
     Args:
-        slide: String containing path to a slide.
+        slidepath: String containing path to a slide.
 
     Returns:
         None
@@ -56,7 +61,7 @@ def check_image(slidepath):
         filename, file_extension = os.path.splitext(slidepath)
         file_extension = file_extension.lower()
         
-        if file_extension != ".svs":
+        if file_extension != SVS_EXT:
             logging.critical("Experimental support only for " + file_extension + " slides!")
 
     except Exception:
@@ -95,6 +100,10 @@ def downsample_image(slide, downsampling_factor, mode="numpy"):
     if mode == "numpy":
         # Remove the alpha channel
         img = np.array(img.convert("RGB"))
+    elif mode == "PIL":
+        img = img.convert("RGB")
+    else:
+        raise ValueError("Invalid mode parameter. Valid values are 'numpy' or 'PIL'.")
 
     return img, best_downsampling_level
 
@@ -102,10 +111,13 @@ def downsample_image(slide, downsampling_factor, mode="numpy"):
 def isPowerOfTwo(n):
     """Checks if a number is a power of two.
 
-        Returns:
-            _: True/False
+    Args:
+        n: Integer to check.
+
+    Returns:
+        _: True/False
     """
-    return math.ceil(math.log2(n)) == math.floor(math.log2(n))
+    return n & (n - 1) == 0
 
 
 def bg_color_identifier(mask, lines_pct, borders, corners):
@@ -115,74 +127,64 @@ def bg_color_identifier(mask, lines_pct, borders, corners):
         mask: A numpy array with the image mask.
         lines_pct: A percentage [0, 100] indicating the percentage of the
             image (starting from the edges) to consider to define the background.
-        borders: A string composed of four numbers [0,1] indicating which
-            sides of the image to use to define the background. String order
-            is left, bottom, right, top.
-        corners: A string composed of four numbers [0,1] indicating which
-            corners of the image to use to define the background. String order
-            is top left, bottom left, bottom right, top right.
+        borders: A string composed of four boolean values indicating which
+            sides of the image to use to define the background.
+        corners: A string composed of four boolean values indicating which
+            corners of the image to use to define the background.
 
     Returns:
         bg_color: A numpy array with the background color.
-        bord_unique: Returns other candidate colors for the background.
     """
-    bord = np.empty((1, 3))
-    
     # Transform image percentages into number of lines
     lines_topbottom = round(mask.shape[0] * (lines_pct/100))
     lines_leftright = round(mask.shape[1] * (lines_pct/100))
 
-    if borders != '0000':
-        if borders[0] == '1':
-            top = mask[:lines_topbottom, :, :]
-            a = np.unique(top.reshape(-1, top.shape[2]), axis=0)
-            bord = np.concatenate((bord, a), axis=0)
-        if borders[2] == '1':
-            bottom = mask[(mask.shape[0] - lines_topbottom):mask.shape[0], :, :]
-            c = np.unique(bottom.reshape(-1, bottom.shape[2]), axis=0)
-            bord = np.concatenate((bord, c), axis=0)
-        if borders[1] == '1':
-            left = mask[:, :lines_leftright, :]
-            b = np.unique(left.reshape(-1, left.shape[2]), axis=0)
-            bord = np.concatenate((bord, b), axis=0)
-        if borders[3] == '1':
-            right = mask[:, (mask.shape[1] - lines_leftright):mask.shape[1], :]
-            d = np.unique(right.reshape(-1, right.shape[2]), axis=0)
-            bord = np.concatenate((bord, d), axis=0)
+    bord = np.empty((1, 3))
+    
+    if borders[0]:
+        top = mask[:lines_topbottom, :, :]
+        a = np.unique(top.reshape(-1, top.shape[2]), axis=0)
+        bord = np.concatenate((bord, a), axis=0)
+    if borders[2]:
+        bottom = mask[(mask.shape[0] - lines_topbottom):mask.shape[0], :, :]
+        c = np.unique(bottom.reshape(-1, bottom.shape[2]), axis=0)
+        bord = np.concatenate((bord, c), axis=0)
+    if borders[1]:
+        left = mask[:, :lines_leftright, :]
+        b = np.unique(left.reshape(-1, left.shape[2]), axis=0)
+        bord = np.concatenate((bord, b), axis=0)
+    if borders[3]:
+        right = mask[:, (mask.shape[1] - lines_leftright):mask.shape[1], :]
+        d = np.unique(right.reshape(-1, right.shape[2]), axis=0)
+        bord = np.concatenate((bord, d), axis=0)
 
-        bord = bord[1:, :]
-        bord_unique = np.unique(bord.reshape(-1, bord.shape[1]), axis=0)
-        bg_color = bord_unique[0]
+    if corners[0]:
+        top_left = mask[:lines_topbottom, :lines_leftright, :]
+        a = np.unique(top_left.reshape(-1, top_left.shape[2]), axis=0)
+        bord = np.concatenate((bord, a), axis=0)
+    if corners[1]:
+        bottom_left = mask[(mask.shape[0] -
+                            lines_topbottom):mask.shape[0], :lines_leftright, :]
+        b = np.unique(bottom_left.reshape(-1, bottom_left.shape[2]),
+                        axis=0)
+        bord = np.concatenate((bord, b), axis=0)
+    if corners[2]:
+        bottom_right = mask[(mask.shape[0] - lines_topbottom):mask.shape[0], (
+            mask.shape[1] - lines_leftright):mask.shape[1], :]
+        c = np.unique(bottom_right.reshape(-1, bottom_right.shape[2]),
+                        axis=0)
+        bord = np.concatenate((bord, c), axis=0)
+    if corners[3]:
+        top_right = mask[:lines_topbottom, (mask.shape[1] -
+                                            lines_leftright):mask.shape[1], :]
+        d = np.unique(top_right.reshape(-1, top_right.shape[2]),
+                        axis=0)
+        bord = np.concatenate((bord, d), axis=0)
 
-    if corners != '0000':
-        if corners[0] == '1':
-            top_left = mask[:lines_topbottom, :lines_leftright, :]
-            a = np.unique(top_left.reshape(-1, top_left.shape[2]), axis=0)
-            bord = np.concatenate((bord, a), axis=0)
-        if corners[1] == '1':
-            bottom_left = mask[(mask.shape[0] -
-                                lines_topbottom):mask.shape[0], :lines_leftright, :]
-            b = np.unique(bottom_left.reshape(-1, bottom_left.shape[2]),
-                            axis=0)
-            bord = np.concatenate((bord, b), axis=0)
-        if corners[2] == '1':
-            bottom_right = mask[(mask.shape[0] - lines_topbottom):mask.shape[0], (
-                mask.shape[1] - lines_leftright):mask.shape[1], :]
-            c = np.unique(bottom_right.reshape(-1, bottom_right.shape[2]),
-                            axis=0)
-            bord = np.concatenate((bord, c), axis=0)
-        if corners[3] == '1':
-            top_right = mask[:lines_topbottom, (mask.shape[1] -
-                                                lines_leftright):mask.shape[1], :]
-            d = np.unique(top_right.reshape(-1, top_right.shape[2]),
-                            axis=0)
-            bord = np.concatenate((bord, d), axis=0)
+    bord_unique = np.unique(bord, axis=0)
+    bg_color = bord_unique[0]
 
-        bord = bord[1:, :]
-        bord_unique = np.unique(bord.reshape(-1, bord.shape[1]), axis=0)
-        bg_color = bord_unique[0]
-
-    return bg_color, bord_unique
+    return bg_color
 
 
 def selector(mask_patch, thres, bg_color, method):
@@ -249,9 +251,8 @@ def selector_otsu(mask_patch, thres, bg_color):
     Returns:
         _: Integer [0/1] indicating if the tile has been selected or not.
     """
-
     bg = np.all(mask_patch == bg_color, axis=2)
-    bg_proportion = np.sum(bg) / bg.size
+    bg_proportion = np.mean(bg)
 
     if bg_proportion <= (1 - thres):
         output = 1
